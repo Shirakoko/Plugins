@@ -11,6 +11,12 @@ public:
 
 	// ~Begin SGraphNode implement
 	virtual void CreateBelowPinControls(TSharedPtr<SVerticalBox> MainBox) override;
+	virtual void UpdateGraphNode() override;
 	// ~End SGraphNode
+
+	FText GetNodeTitle() const;
+	FSlateColor GetBorderBackgroundColor() const;
+
+	TSharedRef<SWidget> CreateNodeContent();
 };
 #pragma once
