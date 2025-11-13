@@ -5,6 +5,7 @@
 
 class UPlotEditorEntry;
 class SPlotGraphView;
+class UEditorContext;
 
 class FPlotEditorToolkit : public FAssetEditorToolkit
 {
@@ -23,6 +24,8 @@ public:
 
 	TSharedPtr<SPlotGraphView> GetPlotGraphView() { return PlotGraphView; }
 
+	UEditorContext* GetEditorContext() { return EditorContext; }
+
 private:
 	/** 正在编辑的资产 */
 	TObjectPtr<UPlotEditorEntry> CurrentAsset;
@@ -35,4 +38,7 @@ private:
 
 	/** 创建Graph视图 */
 	void CreatePlotGraphView(const TSharedRef<FTabManager>& InTabManager);
+
+	/** 编辑器上下文 */
+	TObjectPtr<UEditorContext> EditorContext;
 };

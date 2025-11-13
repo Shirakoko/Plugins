@@ -10,6 +10,7 @@
 #include "UPlotEditorGraph/UPlotEditorGraph.h"
 #include "UPlotEditorGraphSchema/UPlotEditorGraphSchema.h"
 #include "SPlotEditorWidget/SPlotGraphView.h"
+#include "UEditorContext.h"
 
 static const FName TabID_PlotGraphView = "PlotGraphView";
 
@@ -17,6 +18,11 @@ static const FName TabID_PlotGraphView = "PlotGraphView";
 
 void FPlotEditorToolkit::InitPlotEditor(const EToolkitMode::Type Mode, const TSharedPtr<IToolkitHost>& InitToolkitHost, UPlotEditorEntry* InPlotAsset)
 {
+	EditorContext = NewObject<UEditorContext>();
+	EditorContext->AddToRoot(); // 防止被GC
+	EditorContext->Toolkit = SharedThis(this); // 保存变量
+	EditorContext->SetFlags(RF_Transactional);
+
 	// 创建编辑器的标签页布局
 	const TSharedRef<FTabManager::FLayout> Layout = FTabManager::NewLayout("Standalone_PlotEditor_PlotGraph_Layout_v1")
 		->AddArea(

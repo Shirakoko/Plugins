@@ -4,6 +4,19 @@
 #include "EdGraph/EdGraphSchema.h"
 #include "UPlotEditorGraphSchema.generated.h"
 
+USTRUCT()
+struct FPlotGraphAction_NewDialogNode : public FEdGraphSchemaAction
+{
+	GENERATED_BODY()
+
+	FPlotGraphAction_NewDialogNode()
+		: FEdGraphSchemaAction(INVTEXT("PlotGraph"), INVTEXT("添加新对话节点"), INVTEXT("在图中添加一个新的对话节点"), 0)
+	{
+	}
+
+	virtual UEdGraphNode* PerformAction(UEdGraph* ParentGraph, UEdGraphPin* FromPin, const FVector2D Location, bool bSelectNewNode = true) override;
+};
+
 UCLASS()
 class UPlotEditorGraphSchema : public UEdGraphSchema
 {

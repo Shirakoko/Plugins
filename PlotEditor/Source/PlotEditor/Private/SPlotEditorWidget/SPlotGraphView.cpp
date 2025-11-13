@@ -3,13 +3,16 @@
 #include "Framework/Commands/GenericCommands.h"
 #include "FPlotEditorToolkit/FPlotEditorToolkit.h"
 #include "UPlotEditorGraphSchema/UPlotEditorGraphSchema.h"
-
+#include "UEditorContext.h"
 
 void SPlotGraphView::Construct(const FArguments& InArgs, TSharedPtr<FPlotEditorToolkit> InToolkit)
 {
 	Toolkit = InToolkit;
 
-	GraphObj = NewObject<UEdGraph>();
+	UEditorContext* Context = InToolkit->GetEditorContext();
+	check(Context);
+
+	GraphObj = NewObject<UEdGraph>(Context);
 	GraphObj->SetFlags(RF_Transactional); // 可被撤销
 	GraphObj->Schema = UPlotEditorGraphSchema::StaticClass();
 
