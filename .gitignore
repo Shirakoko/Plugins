@@ -1,0 +1,47 @@
+# 通用忽略
+Binaries/
+Intermediate/
+Saved/
+DerivedDataCache/
+Build/
+*.sln
+*.suo
+*.user
+*.opendb
+*.VC.db
+*.VC.VC.opendb
+
+# 编译产物
+*.obj
+*.pch
+*.ilk
+*.meta
+*.exp
+*.lib
+*.dll
+*.exe
+*.so
+*.dylib
+*.app
+
+# 编辑器临时文件
+*.autosave
+Thumbs.db
+
+# 平台特定文件
+*.apk
+*.ipa
+*.xcodeproj
+*.xcworkspace
+*.DS_Store
+
+# 日志文件
+*.log
+*.bak
+
+# 其他IDE相关文件
+.vs/
+.svn/
+.idea/
+*.swp
+*.swo
