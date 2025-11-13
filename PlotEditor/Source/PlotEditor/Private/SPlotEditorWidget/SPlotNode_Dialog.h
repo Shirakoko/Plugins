@@ -9,6 +9,8 @@ public:
 
 	void Construct(const FArguments& InArgs, UEdGraphNode* InNode);
 
+	// ~Begin SGraphNode implement
 	virtual void CreateBelowPinControls(TSharedPtr<SVerticalBox> MainBox) override;
+	// ~End SGraphNode
 };
 #pragma once

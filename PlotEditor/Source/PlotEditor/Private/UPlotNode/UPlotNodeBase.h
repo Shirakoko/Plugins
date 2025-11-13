@@ -20,12 +20,12 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Plot")
 	FString Description;
 
-	// --- UEdGraphNode interface ---
+	// ~Begin UEdGraphNode interface
 	virtual void AllocateDefaultPins() override;
 	virtual FText GetNodeTitle(ENodeTitleType::Type TitleType) const override;
 	virtual FText GetTooltipText() const override;
 	virtual FLinearColor GetNodeTitleColor() const override;
 	virtual void AutowireNewNode(UEdGraphPin* FromPin) override;
 	virtual TSharedPtr<SGraphNode> CreateVisualWidget() override;
-	// --- End ---
+	// ~End UEdGraphNode
 };
