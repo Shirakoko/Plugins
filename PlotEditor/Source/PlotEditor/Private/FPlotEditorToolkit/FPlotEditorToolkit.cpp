@@ -14,16 +14,28 @@
 #include "UPlotData/UPlotData_Dialog.h"
 #include "UPlotNode/UPlotNode_Dialog.h"
 #include "Settings/EditorStyleSettings.h"
+#include "FJsonSerializationHelper/FJsonSerializationHelper.h"
 
 static const FName TabID_PlotGraphView = "PlotGraphView";
+static const FName TabID_DetailPanel = "DetailPanel";
 
 #define LOCTEXT_NAMESPACE "PlotEditor"
+
+FString FPlotEditorToolkit::GetCurrentAssetJsonFilePath()
+{
+	FString DataPath = FPaths::ProjectDir() + TEXT("Designer/EditorData/TaskEditor");
+	FString RelativePath = DataPath + TEXT("/") + CurrentAsset->GetName() + TEXT(".json");
+
+	// 返回绝对路径
+	return FPaths::ConvertRelativePathToFull(RelativePath);
+}
 
 void FPlotEditorToolkit::InitPlotEditor(const EToolkitMode::Type Mode, const TSharedPtr<IToolkitHost>& InitToolkitHost, UPlotEditorEntry* InPlotAsset)
 {
 	EditorContext = NewObject<UEditorContext>();
 	EditorContext->AddToRoot(); // 防止被GC
 	EditorContext->Toolkit = SharedThis(this); // 保存变量
+	EditorContext->InitializeNextID(); // 初始化ID
 	EditorContext->SetFlags(RF_Transactional);
 
 	// 创建编辑器的标签页布局
@@ -32,8 +44,24 @@ void FPlotEditorToolkit::InitPlotEditor(const EToolkitMode::Type Mode, const TSh
 			FTabManager::NewPrimaryArea()
 			->SetOrientation(Orient_Vertical)
 			->Split(
-				FTabManager::NewStack() // 创建标签页堆栈
-				->AddTab(TabID_PlotGraphView, ETabState::OpenedTab) // 添加剧情图视图标签页并默认打开
+				FTabManager::NewSplitter()
+				->SetOrientation(Orient_Vertical)
+				->Split
+				(
+					FTabManager::NewStack() // 创建标签页堆栈
+					->AddTab(TabID_PlotGraphView, ETabState::OpenedTab) // 添加剧情图视图标签页并默认打开
+				)
+			)
+			->Split
+			(
+				FTabManager::NewSplitter()
+				->SetSizeCoefficient(0.25f)
+				->SetOrientation(Orient_Vertical)
+				->Split
+				(
+					FTabManager::NewStack()
+					->AddTab(TabID_DetailPanel, ETabState::OpenedTab)
+				)
 			)
 		);
 
@@ -57,8 +85,9 @@ void FPlotEditorToolkit::RegisterTabSpawners(const TSharedRef<FTabManager>& InTa
 	// 在"窗口 > 工作区"菜单下创建一个分类
 	MenuCategory = InTabManager->AddLocalWorkspaceMenuCategory(INVTEXT("Plot Editor"));
 
-	// 创建并注册 PlotGraphView 视图标签页
+	// 创建各视图标签页
 	CreatePlotGraphView(InTabManager);
+	CreateDetailsPanel(InTabManager);
 
 	// 调用父类的注册方法
 	FAssetEditorToolkit::RegisterTabSpawners(InTabManager);
@@ -69,8 +98,9 @@ void FPlotEditorToolkit::UnregisterTabSpawners(const TSharedRef<FTabManager>& In
 	// 调用父类的注销方法
 	FAssetEditorToolkit::UnregisterTabSpawners(InTabManager);
 
-	// 注销剧情图视图标签页生成器
+	// 注销各视图的标签页生成器
 	InTabManager->UnregisterTabSpawner(TabID_PlotGraphView);
+	InTabManager->UnregisterTabSpawner(TabID_DetailPanel);
 }
 
 UPlotNode_Dialog* FPlotEditorToolkit::Action_NewDialog(UEdGraph* ParentGraph, UEdGraphPin* FromPin, const FVector2D Location, bool bSelectNewNode)
@@ -81,11 +111,14 @@ UPlotNode_Dialog* FPlotEditorToolkit::Action_NewDialog(UEdGraph* ParentGraph, UE
 
 	// TODO: 准备数据
 	UPlotData_Dialog* DialogData;
-	DialogData = NewObject<UPlotData_Dialog>(EditorContext);
-	DialogData->Initialize(GetNextNodeID(), SharedThis(this));
-	// TODO: 其他设置
+	{
+		DialogData = NewObject<UPlotData_Dialog>(EditorContext);
+		DialogData->Initialize(GetNextNodeID(), SharedThis(this));
+		DialogData->IsDeleted = true; // 后面会设置成False触发Transaction
+		// TODO: 其他设置
 
-	DialogData->SetFlags(RF_Transactional);
+		DialogData->SetFlags(RF_Transactional);
+	}
 
 	// 创建节点
 	UPlotNode_Dialog* DialogNode;
@@ -118,16 +151,47 @@ UPlotNode_Dialog* FPlotEditorToolkit::Action_NewDialog(UEdGraph* ParentGraph, UE
 	DialogNode->NodePosY = Location.Y;
 	DialogNode->SnapToGrid(GetDefault<UEditorStyleSettings>()->GridSnapSize);
 
-	FScopedTransaction Transaction(INVTEXT("New Task"));
+	FScopedTransaction Transaction(INVTEXT("New Dialog"));
+
 	EditorContext->Modify();
 	DialogData->Modify();
 	DialogData->IsDeleted = false; // Undo 时，删除对应的编辑器数据文件
-	//TODO: 加入上下文 EditorContext->
+	EditorContext->PlotDataMap.Add(DialogData->ID, DialogData);
+
 	ParentGraph->Modify();
 	ParentGraph->AddNode(DialogNode, true, bSelectNewNode);
 	DialogNode->AutowireNewNode(FromPin);
 
 	return DialogNode;
+}
+
+void FPlotEditorToolkit::Action_DeletePlots(TArray<uint32> InPlotIDList)
+{
+	if (InPlotIDList.IsEmpty()) return;
+
+	const FScopedTransaction Transaction(INVTEXT("Delete Plot"));
+	for (uint32 PlotID : InPlotIDList)
+	{
+		UPlotDataBase* PlotData;
+
+		EditorContext->Modify(); // 标记Dirty，被Transaction系统记录
+		EditorContext->PlotDataMap.RemoveAndCopyValue(PlotID, PlotData);
+
+		PlotData->Modify(); // 标记Dirty，被Transaction系统记录
+		PlotData->IsDeleted = true;
+
+		TWeakObjectPtr<UPlotNodeBase> PlotNodeToDelete = PlotData->PlotNode;
+		if (PlotNodeToDelete.IsValid() && PlotNodeToDelete->CanUserDeleteNode())
+		{
+			PlotNodeToDelete->DestroyNode(); // 删除图节点
+		}
+	}
+}
+
+void FPlotEditorToolkit::SerializeAllPlots()
+{
+	if (!EditorContext.Get()) return;
+	FJsonSerializationHelper::SerializePlotMapToFile(EditorContext->PlotDataMap, GetCurrentAssetJsonFilePath());
 }
 
 void FPlotEditorToolkit::CreatePlotGraphView(const TSharedRef<FTabManager>& InTabManager)
@@ -149,9 +213,31 @@ void FPlotEditorToolkit::CreatePlotGraphView(const TSharedRef<FTabManager>& InTa
 	.SetGroup(MenuCategory.ToSharedRef());  // 设置所属菜单分类
 }
 
+void FPlotEditorToolkit::CreateDetailsPanel(const TSharedRef<FTabManager>& InTabManager)
+{
+	FPropertyEditorModule& PropertyEditorModule = FModuleManager::GetModuleChecked<FPropertyEditorModule>("PropertyEditor");
+	FDetailsViewArgs DetailsViewArgs;
+	DetailsViewArgs.NameAreaSettings = FDetailsViewArgs::HideNameArea;
+
+	DetailsView = PropertyEditorModule.CreateDetailView(DetailsViewArgs);
+	DetailsView->SetObjects(TArray<UObject*>{ });
+
+	InTabManager->RegisterTabSpawner(TabID_DetailPanel,
+		FOnSpawnTab::CreateLambda([=, this](const FSpawnTabArgs&)
+			{
+				return SNew(SDockTab)
+					[
+						DetailsView.ToSharedRef()
+					];
+			}))
+		.SetDisplayName(INVTEXT("Details"))    // 设置标签页显示名称
+		.SetGroup(MenuCategory.ToSharedRef()); // 设置所属菜单分类
+}
+
 int32 FPlotEditorToolkit::GetNextNodeID()
 {
-	return int32(0);
+	check(EditorContext);
+	return EditorContext->NextID++;
 }
 
 #undef LOCTEXT_NAMESPACE

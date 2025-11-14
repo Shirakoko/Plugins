@@ -8,5 +8,8 @@ void UEditorContext::PostTransacted(const FTransactionObjectEvent& TransactionEv
 	{
 		Toolkit.Pin()->GetPlotGraphView()->GetGraphEditorPtr()->NotifyGraphChanged();
 	}
-	UObject::PostTransacted(TransactionEvent);
+	Super::PostTransacted(TransactionEvent);
+
+	// 自动修正NextID
+	InitializeNextID();
 }

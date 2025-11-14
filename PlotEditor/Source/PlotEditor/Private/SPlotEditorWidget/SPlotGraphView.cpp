@@ -4,6 +4,8 @@
 #include "FPlotEditorToolkit/FPlotEditorToolkit.h"
 #include "UPlotEditorGraphSchema/UPlotEditorGraphSchema.h"
 #include "UEditorContext.h"
+#include "UPlotNode/UPlotNodeBase.h"
+#include "UPlotData/UPlotDataBase.h"
 
 void SPlotGraphView::Construct(const FArguments& InArgs, TSharedPtr<FPlotEditorToolkit> InToolkit)
 {
@@ -51,14 +53,28 @@ void SPlotGraphView::OnSelectedNodesChanged(const FGraphPanelSelectionSet& Selec
 {
 	if (!Toolkit.IsValid()) return;
 
-	// TODO: 节点切换变换时调用
+	TArray<UPlotDataBase*> SelectedPlots;
+
+	for (const auto Selection : SelectionSet)
+	{
+		if (const auto Node = Cast<UPlotNodeBase>(Selection))
+		{
+			if (auto Data = Node->GetSource())
+			{
+				SelectedPlots.Add(Data);
+			}
+		}
+	}
+
+	// 同步Detials面板
+	Toolkit.Pin()->GetDetailsView()->SetObjects(TArray<UObject*>(SelectedPlots));
 }
 
 void SPlotGraphView::OnNodeDoubleClicked(UEdGraphNode* ClickedNode)
 {
 	if (!Toolkit.IsValid() || !ClickedNode) return;
 
-	// TODO: 双击节点
+	// TODO: 双击节点回调
 }
 
 void SPlotGraphView::DeleteSelectedNodes()
@@ -68,7 +84,26 @@ void SPlotGraphView::DeleteSelectedNodes()
 	const FGraphPanelSelectionSet Selected = GraphEditorPtr->GetSelectedNodes();
 	if (Selected.Num() == 0) return;
 
-	//TODO: 删除选中节点
+	// 收集选中节点
+	TArray<uint32> PlotIDList;
+
+	for (auto NodeObj : Selected)
+	{
+		if (auto TaskNode = Cast<UPlotNodeBase>(NodeObj))
+		{
+			if (auto Src = TaskNode->GetSource())
+			{
+				PlotIDList.Add(Src->ID);
+			}
+		}
+	}
+	if (PlotIDList.Num() > 0)
+	{
+		Toolkit.Pin()->Action_DeletePlots(PlotIDList);
+	}
+
+	// 清除选中
+	GraphEditorPtr->ClearSelectionSet();
 
 	// 通知图表更新
 	if (GraphEditorPtr.IsValid())

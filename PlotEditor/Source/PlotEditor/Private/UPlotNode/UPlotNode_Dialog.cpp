@@ -9,7 +9,7 @@ void UPlotNode_Dialog::PostTransacted(const FTransactionObjectEvent& Transaction
 	Super::PostTransacted(TransactionEvent);
 	if (Source.IsValid())
 	{
-		Source->OnTransacted();
+		Source->DoTransacted();
 	}
 }
 

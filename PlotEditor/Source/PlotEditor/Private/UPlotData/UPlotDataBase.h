@@ -3,16 +3,12 @@
 #include "UPlotDataBase.generated.h"
 
 class FPlotEditorToolkit;
-UCLASS()
+
+UCLASS(meta = (JsonSerialization))
 class UPlotDataBase : public UObject
 {
 	GENERATED_BODY()
 public:
-
-	UPlotDataBase()
-	{
-
-	}
 
 	void Initialize(uint32 InID, TSharedPtr<FPlotEditorToolkit> InToolkit)
 	{
@@ -20,7 +16,7 @@ public:
 		Toolkit = InToolkit;
 	}
 
-	UPROPERTY(meta = (IgnoreJsonSerialization))
+	UPROPERTY(VisibleAnywhere, Category = "Plot")
 	uint32 ID;
 
 	TWeakPtr<FPlotEditorToolkit> Toolkit;
@@ -34,6 +30,5 @@ public:
 
 	TWeakObjectPtr<class UPlotNodeBase> PlotNode;
 
-private:
-	void DoTransacted();
+	virtual void DoTransacted();
 };

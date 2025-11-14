@@ -46,7 +46,9 @@ public class PlotEditor : ModuleRules
                 "EditorFramework", // 图编辑器，用于显示和编辑节点图
 				"GraphEditor", // 编辑器框架基础，提供扩展点
 				"InputCore", //  输入系统核心，处理键盘鼠标输入
-			}
+				"Json", // Json
+                "JsonUtilities",
+            }
 			);
 		
 		

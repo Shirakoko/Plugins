@@ -1,5 +1,8 @@
 ﻿#include  "UPlotDataBase.h"
 
+#include "UPlotNode/UPlotNodeBase.h"
+#include "FPlotEditorToolkit/FPlotEditorToolkit.h"
+
 void UPlotDataBase::PostTransacted(const FTransactionObjectEvent& TransactionEvent)
 {
 	Super::PostTransacted(TransactionEvent);
@@ -8,12 +11,10 @@ void UPlotDataBase::PostTransacted(const FTransactionObjectEvent& TransactionEve
 
 void UPlotDataBase::DoTransacted()
 {
-	if (IsDeleted)
+	Toolkit.Pin()->SerializeAllPlots();
+
+	if (PlotNode.IsValid())
 	{
-		// TODO: 删除对象
-	}
-	else
-	{
-		// TODO: 序列化保存
+		PlotNode->GetGraph()->NotifyGraphChanged();
 	}
 }

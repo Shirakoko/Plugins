@@ -22,9 +22,16 @@ public:
 	virtual void UnregisterTabSpawners(const TSharedRef<FTabManager>& InTabManager) override;
 	// ~End IToolkit
 
+	/** 新增Dialog节点 */
 	class UPlotNode_Dialog*  Action_NewDialog(UEdGraph* ParentGraph = nullptr, UEdGraphPin* FromPin = nullptr, const FVector2D Location = { 0.0, 0.0 }, bool bSelectNewNode = true);
+	/** 删除Plot节点*/
+	void Action_DeletePlots(TArray<uint32> InPlotIDList);
+
+	/** 序列化保存所有的Plot数据 */
+	void SerializeAllPlots();
 
 	TSharedPtr<SPlotGraphView> GetPlotGraphView() { return PlotGraphView; }
+	TSharedPtr<IDetailsView> GetDetailsView() { return DetailsView; }
 
 	UEditorContext* GetEditorContext() { return EditorContext; }
 
@@ -32,14 +39,22 @@ private:
 	/** 正在编辑的资产 */
 	TObjectPtr<UPlotEditorEntry> CurrentAsset;
 
+	/** 正在编辑器的资产的Json文件路径 */
+	FString GetCurrentAssetJsonFilePath();
+
 	/** 图编辑器的Slate控件 */
 	TSharedPtr<SPlotGraphView> PlotGraphView;
+
+	/** Detials面板的Slate控件 */
+	TSharedPtr<IDetailsView> DetailsView;
 
 	/** 菜单分类项 */
 	TSharedPtr<FWorkspaceItem> MenuCategory;
 
 	/** 创建Graph视图 */
 	void CreatePlotGraphView(const TSharedRef<FTabManager>& InTabManager);
+	/** 创建Detials面板 */
+	void CreateDetailsPanel(const TSharedRef<FTabManager>& InTabManager);
 
 	/** 编辑器上下文 */
 	TObjectPtr<UEditorContext> EditorContext;
