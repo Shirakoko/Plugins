@@ -11,6 +11,9 @@
 #include "UPlotEditorGraphSchema/UPlotEditorGraphSchema.h"
 #include "SPlotEditorWidget/SPlotGraphView.h"
 #include "UEditorContext.h"
+#include "UPlotData/UPlotData_Dialog.h"
+#include "UPlotNode/UPlotNode_Dialog.h"
+#include "Settings/EditorStyleSettings.h"
 
 static const FName TabID_PlotGraphView = "PlotGraphView";
 
@@ -70,6 +73,63 @@ void FPlotEditorToolkit::UnregisterTabSpawners(const TSharedRef<FTabManager>& In
 	InTabManager->UnregisterTabSpawner(TabID_PlotGraphView);
 }
 
+UPlotNode_Dialog* FPlotEditorToolkit::Action_NewDialog(UEdGraph* ParentGraph, UEdGraphPin* FromPin, const FVector2D Location, bool bSelectNewNode)
+{
+	static const int32 NodeDistance = 60;
+
+	if (ParentGraph == nullptr) ParentGraph = PlotGraphView->GetGraphObj();
+
+	// TODO: 准备数据
+	UPlotData_Dialog* DialogData;
+	DialogData = NewObject<UPlotData_Dialog>(EditorContext);
+	DialogData->Initialize(GetNextNodeID(), SharedThis(this));
+	// TODO: 其他设置
+
+	DialogData->SetFlags(RF_Transactional);
+
+	// 创建节点
+	UPlotNode_Dialog* DialogNode;
+	{
+		DialogNode = DuplicateObject<UPlotNode_Dialog>(UPlotNode_Dialog::StaticClass()->GetDefaultObject<UPlotNode_Dialog>(), ParentGraph);
+		DialogNode->SetFlags(RF_Transactional);
+		DialogNode->CreateNewGuid();
+		DialogNode->PostPlacedNewNode();
+		DialogNode->AllocateDefaultPins();
+	}
+
+	// 绑定数据
+	DialogNode->Bind(DialogData);
+
+	int32 XLocation = Location.X;
+
+	// 针对从输入Pin创建节点时让节点左移，避免重叠
+	if (FromPin && FromPin->Direction == EGPD_Input)
+	{
+		UEdGraphNode* PinNode = FromPin->GetOwningNode();
+		const float XDelta = FMath::Abs(PinNode->NodePosX - Location.X);
+
+		if (XDelta < NodeDistance)
+		{
+			XLocation = PinNode->NodePosX - NodeDistance;
+		}
+	}
+
+	DialogNode->NodePosX = XLocation;
+	DialogNode->NodePosY = Location.Y;
+	DialogNode->SnapToGrid(GetDefault<UEditorStyleSettings>()->GridSnapSize);
+
+	FScopedTransaction Transaction(INVTEXT("New Task"));
+	EditorContext->Modify();
+	DialogData->Modify();
+	DialogData->IsDeleted = false; // Undo 时，删除对应的编辑器数据文件
+	//TODO: 加入上下文 EditorContext->
+	ParentGraph->Modify();
+	ParentGraph->AddNode(DialogNode, true, bSelectNewNode);
+	DialogNode->AutowireNewNode(FromPin);
+
+	return DialogNode;
+}
+
 void FPlotEditorToolkit::CreatePlotGraphView(const TSharedRef<FTabManager>& InTabManager)
 {
 	SAssignNew(PlotGraphView, SPlotGraphView, SharedThis(this));
@@ -87,6 +147,11 @@ void FPlotEditorToolkit::CreatePlotGraphView(const TSharedRef<FTabManager>& InTa
 	)
 	.SetDisplayName(INVTEXT("Plots Graph")) // 设置标签页显示名称
 	.SetGroup(MenuCategory.ToSharedRef());  // 设置所属菜单分类
+}
+
+int32 FPlotEditorToolkit::GetNextNodeID()
+{
+	return int32(0);
 }
 
 #undef LOCTEXT_NAMESPACE

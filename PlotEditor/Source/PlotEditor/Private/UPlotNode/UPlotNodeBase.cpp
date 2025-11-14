@@ -1,28 +1,28 @@
 ﻿#include "UPlotNodeBase.h"
 
-#include "SPlotEditorWidget/SPlotNodeBase.h"
+#include "SPlotEditorWidget/SPlotNode_Dialog.h"
+#include "UPlotData/UPlotDataBase.h"
 
-UPlotNodeBase::UPlotNodeBase()
+void UPlotNodeBase::PostTransacted(const FTransactionObjectEvent& TransactionEvent)
 {
-	NodeID = -1;
-	NodeName = TEXT("Unnamed Node");
-	Description = TEXT("");
+	Super::PostTransacted(TransactionEvent);
 }
 
-void UPlotNodeBase::AllocateDefaultPins()
+UObject* UPlotNodeBase::GetJumpTargetForDoubleClick() const
 {
-	CreatePin(EGPD_Input, "PlotFlow", FName(), TEXT("In"));
-	CreatePin(EGPD_Output, "PlotFlow", FName(), TEXT("Out"));
+	return nullptr;
 }
 
 FText UPlotNodeBase::GetNodeTitle(ENodeTitleType::Type TitleType) const
 {
-	return FText::FromString(NodeName);
+	// 子类实现
+	return FText();
 }
 
 FText UPlotNodeBase::GetTooltipText() const
 {
-	return FText::FromString(Description);
+	// 子类实现
+	return FText();
 }
 
 FLinearColor UPlotNodeBase::GetNodeTitleColor() const
@@ -32,14 +32,20 @@ FLinearColor UPlotNodeBase::GetNodeTitleColor() const
 
 void UPlotNodeBase::AutowireNewNode(UEdGraphPin* FromPin)
 {
-	// 默认连线逻辑
-	//if (FromPin && FromPin->Direction == EGPD_Output)
-	//{
-	//	FromPin->MakeLinkTo(GetInputPin());
-	//}
+	// 子类实现
+}
+
+void UPlotNodeBase::Bind(UPlotDataBase* InSource)
+{
+	check(!Source.IsValid());
+	check(!InSource->PlotNode.IsValid());
+
+	Source = InSource;
+	InSource->PlotNode = this;
 }
 
 TSharedPtr<SGraphNode> UPlotNodeBase::CreateVisualWidget()
 {
-	return SNew(SPlotNodeBase, this);
+	// 子类实现
+	return nullptr;
 }

@@ -3,26 +3,20 @@
 #include "UPlotNodeBase.h"
 #include "UPlotNode_Dialog.generated.h"
 
-USTRUCT()
-struct FDialogueLine
-{
-	GENERATED_BODY()
-
-	UPROPERTY(EditAnywhere, Category = "Dialog")
-	FString Speaker;
-
-	UPROPERTY(EditAnywhere, Category = "Dialog")
-	FString Content;
-};
 
 UCLASS()
 class UPlotNode_Dialog : public UPlotNodeBase
 {
 	GENERATED_BODY()
 public:
-	UPROPERTY(EditAnywhere, Category = "Dialog")
-	TArray<FDialogueLine> Lines;
+	virtual void PostTransacted(const FTransactionObjectEvent& TransactionEvent) override;
 
+	// ~Begin UEdGraphNode interface
 	virtual void AllocateDefaultPins() override;
+	virtual void AutowireNewNode(UEdGraphPin* FromPin) override;
 	virtual TSharedPtr<SGraphNode> CreateVisualWidget() override;
+	// ~End UEdGraphNode
+
+private:
+
 };

@@ -4,22 +4,29 @@
 
 void SPlotNode_Dialog::Construct(const FArguments& InArgs, UEdGraphNode* InNode)
 {
-	SPlotNodeBase::Construct(SPlotNodeBase::FArguments(), InNode);
+	GraphNode = InNode;
+	UpdateGraphNode();
 }
 
 void SPlotNode_Dialog::CreateBelowPinControls(TSharedPtr<SVerticalBox> MainBox)
 {
-	if (UPlotNode_Dialog* Node = Cast<UPlotNode_Dialog>(GraphNode))
-	{
-		for (auto& Line : Node->Lines)
-		{
-			MainBox->AddSlot()
-				.AutoHeight()
-				.Padding(2)
-				[
-					SNew(STextBlock)
-						.Text(FText::FromString(FString::Printf(TEXT("%s: %s"), *Line.Speaker, *Line.Content)))
-				];
-		}
-	}
+	auto DialogNode = Cast<UPlotNode_Dialog>(GraphNode);
+	auto DialogData = DialogNode->GetSource();
+
+	MainBox->AddSlot()
+		.VAlign(VAlign_Center)
+		.AutoHeight()
+		.Padding(10.f, 2.f)
+		[
+			SNew(STextBlock)
+				.Text(FText::FromString(TEXT("测试节点")))
+				.Font(FSlateFontInfo(FCoreStyle::GetDefaultFont(), 14))  
+				.ColorAndOpacity(FLinearColor::White)
+		];
+}
+
+void SPlotNode_Dialog::CreatePinWidgets()
+{
+	SGraphNode::CreatePinWidgets();
+	// 重写创建Pin
 }

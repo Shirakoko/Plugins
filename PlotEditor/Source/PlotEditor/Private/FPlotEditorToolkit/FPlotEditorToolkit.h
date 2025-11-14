@@ -22,6 +22,8 @@ public:
 	virtual void UnregisterTabSpawners(const TSharedRef<FTabManager>& InTabManager) override;
 	// ~End IToolkit
 
+	class UPlotNode_Dialog*  Action_NewDialog(UEdGraph* ParentGraph = nullptr, UEdGraphPin* FromPin = nullptr, const FVector2D Location = { 0.0, 0.0 }, bool bSelectNewNode = true);
+
 	TSharedPtr<SPlotGraphView> GetPlotGraphView() { return PlotGraphView; }
 
 	UEditorContext* GetEditorContext() { return EditorContext; }
@@ -41,4 +43,6 @@ private:
 
 	/** 编辑器上下文 */
 	TObjectPtr<UEditorContext> EditorContext;
+
+	int32 GetNextNodeID();
 };

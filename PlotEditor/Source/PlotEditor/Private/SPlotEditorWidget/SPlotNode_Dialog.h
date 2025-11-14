@@ -1,7 +1,7 @@
 ﻿#pragma once
-#include "SPlotNodeBase.h"
+#include "SGraphNode.h"
 
-class SPlotNode_Dialog : public SPlotNodeBase
+class SPlotNode_Dialog : public SGraphNode
 {
 public:
 	SLATE_BEGIN_ARGS(SPlotNode_Dialog) {}
@@ -11,6 +11,7 @@ public:
 
 	// ~Begin SGraphNode implement
 	virtual void CreateBelowPinControls(TSharedPtr<SVerticalBox> MainBox) override;
+	virtual void CreatePinWidgets() override;
 	// ~End SGraphNode
 };
 #pragma once
