@@ -3,6 +3,7 @@
 #include "JsonObjectConverter.h"
 #include "UPlotData/UPlotDataBase.h"
 #include "UPlotData/UPlotData_Dialog.h"
+#include "UPlotData/UPlotData_Choice.h"
 
 /*static*/ const FName FJsonSerializationHelper::CLASS_META_JsonSerialization = "JsonSerialization";
 /*static*/ const FName FJsonSerializationHelper::CLASS_META_PreJsonSerialization = "PreJsonSerialization";
@@ -118,7 +119,7 @@ void FJsonSerializationHelper::DeserializePlotMap(
 			break;
 
 		case EPlotNodeType::Choice:
-			//TODO: NewObj = NewObject<UPlotData_Choice>(Outer);
+			NewObj = NewObject<UPlotData_Choice>(Outer);
 			break;
 
 		default:

@@ -13,26 +13,9 @@ UObject* UPlotNodeBase::GetJumpTargetForDoubleClick() const
 	return nullptr;
 }
 
-FText UPlotNodeBase::GetNodeTitle(ENodeTitleType::Type TitleType) const
-{
-	// 子类实现
-	return FText();
-}
-
-FText UPlotNodeBase::GetTooltipText() const
-{
-	// 子类实现
-	return FText();
-}
-
 FLinearColor UPlotNodeBase::GetNodeTitleColor() const
 {
 	return FLinearColor(0.4f, 0.4f, 0.4f);
-}
-
-void UPlotNodeBase::AutowireNewNode(UEdGraphPin* FromPin)
-{
-	// 子类实现
 }
 
 void UPlotNodeBase::Bind(UPlotDataBase* InSource)
@@ -42,10 +25,4 @@ void UPlotNodeBase::Bind(UPlotDataBase* InSource)
 
 	Source = InSource;
 	InSource->PlotNode = this;
-}
-
-TSharedPtr<SGraphNode> UPlotNodeBase::CreateVisualWidget()
-{
-	// 子类实现
-	return nullptr;
 }

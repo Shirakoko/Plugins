@@ -17,6 +17,19 @@ struct FPlotGraphAction_NewDialogNode : public FEdGraphSchemaAction
 	virtual UEdGraphNode* PerformAction(UEdGraph* ParentGraph, UEdGraphPin* FromPin, const FVector2D Location, bool bSelectNewNode = true) override;
 };
 
+USTRUCT()
+struct FPlotGraphAction_NewChoiceNode : public FEdGraphSchemaAction
+{
+	GENERATED_BODY()
+
+	FPlotGraphAction_NewChoiceNode()
+		: FEdGraphSchemaAction(INVTEXT("PlotGraph"), INVTEXT("添加新选择节点"), INVTEXT("在图中添加一个新的选择节点"), 0)
+	{
+	}
+
+	virtual UEdGraphNode* PerformAction(UEdGraph* ParentGraph, UEdGraphPin* FromPin, const FVector2D Location, bool bSelectNewNode = true) override;
+};
+
 UCLASS()
 class UPlotEditorGraphSchema : public UEdGraphSchema
 {

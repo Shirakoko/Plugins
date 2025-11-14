@@ -15,8 +15,8 @@ void UPlotNode_Dialog::PostTransacted(const FTransactionObjectEvent& Transaction
 
 void UPlotNode_Dialog::AllocateDefaultPins()
 {
-	PrevPin = CreatePin(EGPD_Input, FPlotEditorPinFactory::PinCategory, FName(), TEXT("上个节点"));
-	NextPin = CreatePin(EGPD_Output, FPlotEditorPinFactory::PinCategory, FName(), TEXT("下个节点"));
+	PrevPin = CreatePin(EGPD_Input, FPlotEditorPinFactory::PinCategory, FName(), TEXT("上一幕"));
+	NextPin = CreatePin(EGPD_Output, FPlotEditorPinFactory::PinCategory, FName(), TEXT("下一幕"));
 }
 
 void UPlotNode_Dialog::AutowireNewNode(UEdGraphPin* FromPin)

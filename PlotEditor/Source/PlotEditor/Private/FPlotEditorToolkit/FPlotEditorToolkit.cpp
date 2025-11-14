@@ -14,6 +14,7 @@
 #include "UEditorContext.h"
 #include "UPlotData/UPlotData_Dialog.h"
 #include "UPlotNode/UPlotNode_Dialog.h"
+#include "UPlotData/UPlotData_Choice.h"
 #include "Settings/EditorStyleSettings.h"
 #include "FJsonSerializationHelper/FJsonSerializationHelper.h"
 
@@ -169,6 +170,68 @@ UPlotNode_Dialog* FPlotEditorToolkit::Action_NewDialog(UEdGraph* ParentGraph, UE
 	return DialogNode;
 }
 
+UPlotNode_Choice* FPlotEditorToolkit::Action_NewChoice(UEdGraph* ParentGraph, UEdGraphPin* FromPin, const FVector2D Location, bool bSelectNewNode)
+{
+	static const int32 NodeDistance = 60;
+
+	if (ParentGraph == nullptr) ParentGraph = PlotGraphView->GetGraphObj();
+
+	// 准备数据
+	UPlotData_Choice* ChoiceData;
+	{
+		ChoiceData = NewObject<UPlotData_Choice>(EditorContext.Get());
+		ChoiceData->Initialize(GetNextNodeID(), SharedThis(this));
+		ChoiceData->IsDeleted = true;
+		// TODO: 其他设置
+
+		ChoiceData->SetFlags(RF_Transactional);
+	}
+
+	// 创建节点
+	UPlotNode_Choice* ChoiceNode;
+	{
+		ChoiceNode = DuplicateObject<UPlotNode_Choice>(UPlotNode_Choice::StaticClass()->GetDefaultObject<UPlotNode_Choice>(), ParentGraph);
+		ChoiceNode->SetFlags(RF_Transactional);
+		ChoiceNode->CreateNewGuid();
+		ChoiceNode->PostPlacedNewNode();
+		ChoiceNode->AllocateDefaultPins();
+	}
+
+	// 绑定数据
+	ChoiceNode->Bind(ChoiceData);
+
+	int32 XLocation = Location.X;
+
+	// 针对从输入Pin创建节点时让节点左移，避免重叠
+	if (FromPin && FromPin->Direction == EGPD_Input)
+	{
+		UEdGraphNode* PinNode = FromPin->GetOwningNode();
+		const float XDelta = FMath::Abs(PinNode->NodePosX - Location.X);
+
+		if (XDelta < NodeDistance)
+		{
+			XLocation = PinNode->NodePosX - NodeDistance;
+		}
+	}
+
+	ChoiceNode->NodePosX = XLocation;
+	ChoiceNode->NodePosY = Location.Y;
+	ChoiceNode->SnapToGrid(GetDefault<UEditorStyleSettings>()->GridSnapSize);
+
+	FScopedTransaction Transaction(INVTEXT("New Dialog"));
+
+	EditorContext->Modify();
+	ChoiceData->Modify();
+	ChoiceData->IsDeleted = false; // Undo 时，删除对应的编辑器数据文件
+	EditorContext->PlotDataMap.Add(ChoiceData->ID, ChoiceData);
+
+	ParentGraph->Modify();
+	ParentGraph->AddNode(ChoiceNode, true, bSelectNewNode);
+	ChoiceNode->AutowireNewNode(FromPin);
+
+	return ChoiceNode;
+}
+
 void FPlotEditorToolkit::Action_DeletePlots(TArray<uint32> InPlotIDList)
 {
 	if (InPlotIDList.IsEmpty()) return;
@@ -211,11 +274,121 @@ void FPlotEditorToolkit::LoadPlotsData()
 	}
 }
 
+void FPlotEditorToolkit::ConnectDialogNode(UPlotData_Dialog* DialogData)
+{
+	uint32 SrcID = DialogData->ID;
+	uint32 DestID = DialogData->NextPlot;
+
+	if (DestID == 0) return;
+
+	UPlotDataBase** Found = EditorContext->PlotDataMap.Find(DestID);
+	if (!Found || !(*Found))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Dialog %u -> NextPlot %u not found"), SrcID, DestID);
+		return;
+	}
+
+	auto SrcNode = Cast<UPlotNode_Dialog>(DialogData->PlotNode.Get());
+	auto DestNode = (*Found)->PlotNode.Get();
+
+	if (!SrcNode || !DestNode) return;
+
+	UEdGraphPin* SrcOut = SrcNode->GetNextPin();
+	if (!SrcOut) return;
+
+	// 目标节点为 Dialog 节点
+	if (auto DestDialog = Cast<UPlotNode_Dialog>(DestNode))
+	{
+		UEdGraphPin* DestIn = DestDialog->GetPrevPin();
+		if (DestIn)
+		{
+			SrcOut->MakeLinkTo(DestIn);
+		}
+		return;
+	}
+
+	// 目标节点为 Choice 节点
+	if (auto DestChoice = Cast<UPlotNode_Choice>(DestNode))
+	{
+		UEdGraphPin* DestIn = DestChoice->GetPrevPin();
+		if (DestIn)
+		{
+			SrcOut->MakeLinkTo(DestIn);
+		}
+		return;
+	}
+
+	UE_LOG(LogTemp, Warning, TEXT("Dialog %u cannot connect to unknown node type %u"), SrcID, DestID);
+}
+
+void FPlotEditorToolkit::ConnectChoiceNode(UPlotData_Choice* ChoiceData)
+{
+	uint32 SrcID = ChoiceData->ID;
+	auto ChoiceNode = Cast<UPlotNode_Choice>(ChoiceData->PlotNode.Get());
+	if (!ChoiceNode) return;
+
+	const TArray<UEdGraphPin*>& OutPins = ChoiceNode->GetChoicePins();
+
+	for (const TPair<int32, uint32>& Pair : ChoiceData->NextPlotMap)
+	{
+		int32 OptionIndex = Pair.Key;
+		uint32 TargetID = Pair.Value;
+
+		// 寻找SrcPin
+		if (!OutPins.IsValidIndex(OptionIndex))
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Choice node %s has no OutPin[%d]"), *ChoiceNode->GetName(), OptionIndex);
+			continue;
+		}
+
+		UEdGraphPin* SrcPin = OutPins[OptionIndex];
+		check(SrcPin);
+
+		// 寻找目标节点数据和目标节点
+		UPlotDataBase** TargetDataPtr = EditorContext->PlotDataMap.Find(TargetID);
+		if (!TargetDataPtr || !(*TargetDataPtr))
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Choice option %d -> target %u not found"), OptionIndex, TargetID);
+			continue;
+		}
+		UPlotNodeBase* TargetNode = (*TargetDataPtr)->PlotNode.Get();
+		if (!TargetNode)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Target node %u has no PlotNode"), TargetID);
+			continue;
+		}
+
+
+		// 找目标节点的PrevPin
+		UEdGraphPin* TargetPrevPin = nullptr;
+
+		if (UPlotNode_Dialog* TargetDialog = Cast<UPlotNode_Dialog>(TargetNode))
+		{
+			TargetPrevPin = TargetDialog->GetPrevPin();
+		}
+		else if (UPlotNode_Choice* TargetChoice = Cast<UPlotNode_Choice>(TargetNode))
+		{
+			TargetPrevPin = TargetChoice->GetPrevPin();
+		}
+
+		if (!TargetPrevPin)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Target %u has no PrevPin"), TargetID);
+			continue;
+		}
+
+		// 创建连接
+		SrcPin->MakeLinkTo(TargetPrevPin);
+	}
+}
+
 void FPlotEditorToolkit::InitPlotGraph()
 {
 	// 生成节点
 	for (const auto& KeyValue : EditorContext->PlotDataMap)
 	{
+		uint32 NodeID = KeyValue.Key;
+
 		UPlotDataBase* PlotData = KeyValue.Value;
 		UClass* NodeClass = PlotData->GetNodeClass();
 
@@ -226,27 +399,32 @@ void FPlotEditorToolkit::InitPlotGraph()
 			NodeClass->GetDefaultObject<UEdGraphNode>() // 用类默认对象生成节点
 		);
 
+		// 初始化节点数据
+		PlotData->Initialize(NodeID, SharedThis(this));
+
 		// 绑定数据
-		Cast<UPlotNodeBase>(Node)->Bind(KeyValue.Value);
+		auto PlotNode = Cast<UPlotNodeBase>(Node);
+		PlotNode->Bind(PlotData);
 	}
 
-	// 创建连接
+	// 创建连接（支持 Dialog 和 Choice）
 	for (const auto& KeyValue : EditorContext->PlotDataMap)
 	{
-		const auto PlotData = KeyValue.Value;
+		UPlotDataBase* PlotData = KeyValue.Value;
 
-		// 如果是UPlotData_Dialog，只有一个输出引脚和一个NextPlot
 		if (auto DialogData = Cast<UPlotData_Dialog>(PlotData))
 		{
-			const auto& NextPlotID = DialogData->NextPlot;
-			if (!EditorContext->PlotDataMap.Find(NextPlotID)) continue;
-
-			const auto NextNode = EditorContext->PlotDataMap[NextPlotID]->PlotNode;
-			DialogData->PlotNode->GetNextPin()->MakeLinkTo(NextNode->GetPrevPin());
+			ConnectDialogNode(DialogData);
+			continue;
 		}
-		
+		if (auto ChoiceData = Cast<UPlotData_Choice>(PlotData))
+		{
+			ConnectChoiceNode(ChoiceData);
+			continue;
+		}
 	}
 
+	// 清空初始选中
 	PlotGraphView->GetGraphEditorPtr()->RegisterActiveTimer(0.0f, FWidgetActiveTimerDelegate::CreateLambda(
 		[this](double, float)
 		{

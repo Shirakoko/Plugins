@@ -23,7 +23,8 @@ public:
 	// ~End IToolkit
 
 	/** 新增Dialog节点 */
-	class UPlotNode_Dialog*  Action_NewDialog(UEdGraph* ParentGraph = nullptr, UEdGraphPin* FromPin = nullptr, const FVector2D Location = { 0.0, 0.0 }, bool bSelectNewNode = true);
+	class UPlotNode_Dialog* Action_NewDialog(UEdGraph* ParentGraph = nullptr, UEdGraphPin* FromPin = nullptr, const FVector2D Location = { 0.0, 0.0 }, bool bSelectNewNode = true);
+	class UPlotNode_Choice* Action_NewChoice(UEdGraph* ParentGraph = nullptr, UEdGraphPin* FromPin = nullptr, const FVector2D Location = { 0.0, 0.0 }, bool bSelectNewNode = true);
 	/** 删除Plot节点*/
 	void Action_DeletePlots(TArray<uint32> InPlotIDList);
 
@@ -64,6 +65,10 @@ private:
 
 	/** 编辑器上下文 */
 	TObjectPtr<UEditorContext> EditorContext;
+
+	void ConnectDialogNode(class UPlotData_Dialog* DialogData);
+
+	void ConnectChoiceNode(class UPlotData_Choice* ChoiceData);
 
 	int32 GetNextNodeID();
 };

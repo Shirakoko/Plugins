@@ -4,10 +4,13 @@
 
 void UPlotData_Dialog::DoTransacted()
 {
+	auto DialogNode = Cast<UPlotNode_Dialog>(PlotNode);
+	check(DialogNode);
 
-	auto NextPins = PlotNode->GetNextPin()->LinkedTo;
+	auto NextPins = DialogNode->GetNextPin()->LinkedTo;
 	check(NextPins.Num() <= 1);
 
+	// 设置NextPlot
 	if (NextPins.Num() == 1)
 	{
 		auto NextPlotNode = Cast<UPlotNodeBase>(NextPins[0]->GetOwningNode());

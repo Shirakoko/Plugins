@@ -1,6 +1,7 @@
 ﻿#include "SPlotNode_Dialog.h"
 #include "UPlotNode/UPlotNode_Dialog.h"
 #include "Widgets/Text/STextBlock.h"
+#include "SPlotNode_Choice.h"
 
 void SPlotNode_Dialog::Construct(const FArguments& InArgs, UEdGraphNode* InNode)
 {
@@ -19,7 +20,7 @@ void SPlotNode_Dialog::CreateBelowPinControls(TSharedPtr<SVerticalBox> MainBox)
 		.Padding(10.f, 2.f)
 		[
 			SNew(STextBlock)
-				.Text(FText::FromString(TEXT("测试节点")))
+				.Text(FText::FromString(TEXT("测试Dialog节点")))
 				.Font(FSlateFontInfo(FCoreStyle::GetDefaultFont(), 14))  
 				.ColorAndOpacity(FLinearColor::White)
 		];

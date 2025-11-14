@@ -1,12 +1,15 @@
 ﻿#include "UPlotEditorGraphSchema.h"
 
 #include "UPlotNode/UPlotNode_Dialog.h"
+#include "UPlotNode/UPlotNode_Choice.h"
 #include "UEditorContext.h"
 #include "FPlotEditorToolkit/FPlotEditorToolkit.h"
 
 void UPlotEditorGraphSchema::GetGraphContextActions(FGraphContextMenuBuilder& ContextMenuBuilder) const
 {
 	ContextMenuBuilder.AddAction(MakeShared<FPlotGraphAction_NewDialogNode>());
+	ContextMenuBuilder.AddAction(MakeShared<FPlotGraphAction_NewChoiceNode>());
+
 	Super::GetGraphContextActions(ContextMenuBuilder);
 }
 
@@ -37,6 +40,35 @@ UEdGraphNode* FPlotGraphAction_NewDialogNode::PerformAction(UEdGraph* ParentGrap
 	}
 	return NewNode;
 }
+
+UEdGraphNode* FPlotGraphAction_NewChoiceNode::PerformAction(UEdGraph* ParentGraph, UEdGraphPin* FromPin, const FVector2D Location, bool bSelectNewNode)
+{
+	UPlotNode_Choice* NewNode = nullptr;
+
+	if (FromPin)
+	{
+		// 如果 FromPin 是输出 pin，并且它已经连接了别的 pin，则禁止自动创建
+		if (FromPin->Direction == EGPD_Output && FromPin->LinkedTo.Num() >= 1)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("[PlotEditor] Cannot create new choice node: output pin <%s> already has a connection."), *FromPin->GetName()
+			);
+			return nullptr;
+		}
+	}
+
+	if (auto EditorContext = Cast<UEditorContext>(ParentGraph->GetOuter()))
+	{
+		auto Toolkit = EditorContext->Toolkit.Pin();
+		if (Toolkit.IsValid())
+		{
+			// 调用 Toolkit 里实际创建节点的方法
+			NewNode = Toolkit->Action_NewChoice(ParentGraph, FromPin, Location, bSelectNewNode);
+		}
+	}
+
+	return NewNode;
+}
+
 
 const FPinConnectionResponse UPlotEditorGraphSchema::CanCreateConnection(const UEdGraphPin* A, const UEdGraphPin* B) const
 {
