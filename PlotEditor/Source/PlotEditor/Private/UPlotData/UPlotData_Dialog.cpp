@@ -18,6 +18,6 @@ void UPlotData_Dialog::DoTransacted()
 		NextPlot = 0;
 	}
 
-	// 调用父类的
+	// 调用父类的DoTransacted触发序列化
 	Super::DoTransacted();
 }

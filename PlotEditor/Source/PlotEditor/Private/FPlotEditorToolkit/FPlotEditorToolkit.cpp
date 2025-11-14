@@ -1,7 +1,8 @@
 ﻿#include "FPlotEditorToolkit.h"
 
-#include "UPlotEditorEntry/UPlotEditorEntry.h"
 
+#include "SGraphPanel.h"
+#include "UPlotEditorEntry/UPlotEditorEntry.h"
 #include "Widgets/Docking/SDockTab.h"
 #include "Widgets/Layout/SBox.h"
 #include "Widgets/Text/STextBlock.h"
@@ -78,6 +79,9 @@ void FPlotEditorToolkit::InitPlotEditor(const EToolkitMode::Type Mode, const TSh
 		true,                    // 创建默认工具栏
 		CurrentAsset             // 要编辑的资产对象
 	);
+
+	LoadPlotsData(); // 从Json加载数据
+	InitPlotGraph(); // 创建节点和连接
 }
 
 void FPlotEditorToolkit::RegisterTabSpawners(const TSharedRef<FTabManager>& InTabManager)
@@ -192,6 +196,73 @@ void FPlotEditorToolkit::SerializeAllPlots()
 {
 	if (!EditorContext.Get()) return;
 	FJsonSerializationHelper::SerializePlotMapToFile(EditorContext->PlotDataMap, GetCurrentAssetJsonFilePath());
+}
+
+void FPlotEditorToolkit::LoadPlotsData()
+{
+	EditorContext->PlotDataMap.Empty();
+
+	const FString FilePath = GetCurrentAssetJsonFilePath();
+
+	if (!FJsonSerializationHelper::DeserializePlotMapFromFile(EditorContext->PlotDataMap, FilePath, EditorContext))
+	{
+		UE_LOG(LogTemp, Error, TEXT("Failed to load plot map JSON: %s"), *FilePath);
+		return;
+	}
+}
+
+void FPlotEditorToolkit::InitPlotGraph()
+{
+	// 生成节点
+	for (const auto& KeyValue : EditorContext->PlotDataMap)
+	{
+		UPlotDataBase* PlotData = KeyValue.Value;
+		UClass* NodeClass = PlotData->GetNodeClass();
+
+		UEdGraphNode* Node = FEdGraphSchemaAction_NewNode::CreateNode(
+			PlotGraphView->GetGraphObj(),
+			nullptr,
+			PlotData->NodePos, // 根据Json数据设置位置
+			NodeClass->GetDefaultObject<UEdGraphNode>() // 用类默认对象生成节点
+		);
+
+		// 绑定数据
+		Cast<UPlotNodeBase>(Node)->Bind(KeyValue.Value);
+	}
+
+	// 创建连接
+	for (const auto& KeyValue : EditorContext->PlotDataMap)
+	{
+		const auto PlotData = KeyValue.Value;
+
+		// 如果是UPlotData_Dialog，只有一个输出引脚和一个NextPlot
+		if (auto DialogData = Cast<UPlotData_Dialog>(PlotData))
+		{
+			const auto& NextPlotID = DialogData->NextPlot;
+			if (!EditorContext->PlotDataMap.Find(NextPlotID)) continue;
+
+			const auto NextNode = EditorContext->PlotDataMap[NextPlotID]->PlotNode;
+			DialogData->PlotNode->GetNextPin()->MakeLinkTo(NextNode->GetPrevPin());
+		}
+		
+	}
+
+	PlotGraphView->GetGraphEditorPtr()->RegisterActiveTimer(0.0f, FWidgetActiveTimerDelegate::CreateLambda(
+		[this](double, float)
+		{
+			for (const auto& KeyValue : EditorContext->PlotDataMap)
+			{
+				const auto PlotData = KeyValue.Value;
+				if (PlotData->PlotNode.IsValid())
+				{
+					if (!PlotGraphView->GetGraphEditorPtr()->GetGraphPanel()->GetNodeWidgetFromGuid(PlotData->PlotNode->NodeGuid))
+						return EActiveTimerReturnType::Continue;
+				}
+			}
+			PlotGraphView->GetGraphEditorPtr()->ClearSelectionSet();
+			return EActiveTimerReturnType::Stop;
+		}
+	));
 }
 
 void FPlotEditorToolkit::CreatePlotGraphView(const TSharedRef<FTabManager>& InTabManager)

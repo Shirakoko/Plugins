@@ -1,8 +1,17 @@
 ﻿#pragma once
 
+#include "UPlotNode/UPlotNodeBase.h"
 #include "UPlotDataBase.generated.h"
 
 class FPlotEditorToolkit;
+
+UENUM()
+enum class EPlotNodeType : uint8
+{
+	Dialog,
+	Choice,
+};
+
 
 UCLASS(meta = (JsonSerialization))
 class UPlotDataBase : public UObject
@@ -16,17 +25,28 @@ public:
 		Toolkit = InToolkit;
 	}
 
+	virtual UClass* GetNodeClass() const
+	{
+		return UPlotNodeBase::StaticClass();
+	}
+
 	UPROPERTY(VisibleAnywhere, Category = "Plot")
 	uint32 ID;
+
+	UPROPERTY(NonTransactional)
+	FVector2D NodePos;
+
+	UPROPERTY(NonTransactional)
+	EPlotNodeType NodeType;
+
+	UPROPERTY(meta = (IgnoreJsonSerialization))
+	bool IsDeleted;
 
 	TWeakPtr<FPlotEditorToolkit> Toolkit;
 
 	// ~Begin Interface UObject::PostTransacted
 	virtual void PostTransacted(const FTransactionObjectEvent& TransactionEvent) override;
 	// ~End Interfacce
-
-	UPROPERTY(meta = (IgnoreJsonSerialization))
-	bool IsDeleted;
 
 	TWeakObjectPtr<class UPlotNodeBase> PlotNode;
 

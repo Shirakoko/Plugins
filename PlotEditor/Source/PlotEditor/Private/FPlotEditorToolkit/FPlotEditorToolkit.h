@@ -51,6 +51,12 @@ private:
 	/** 菜单分类项 */
 	TSharedPtr<FWorkspaceItem> MenuCategory;
 
+	/** 加载Plot数据 */
+	void LoadPlotsData();
+
+	/** 生成Plot图 */
+	void InitPlotGraph();
+
 	/** 创建Graph视图 */
 	void CreatePlotGraphView(const TSharedRef<FTabManager>& InTabManager);
 	/** 创建Detials面板 */

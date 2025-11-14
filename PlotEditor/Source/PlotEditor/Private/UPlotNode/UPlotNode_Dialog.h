@@ -16,7 +16,4 @@ public:
 	virtual void AutowireNewNode(UEdGraphPin* FromPin) override;
 	virtual TSharedPtr<SGraphNode> CreateVisualWidget() override;
 	// ~End UEdGraphNode
-
-private:
-
 };

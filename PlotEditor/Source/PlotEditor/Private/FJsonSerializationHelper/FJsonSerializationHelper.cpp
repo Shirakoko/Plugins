@@ -2,6 +2,7 @@
 
 #include "JsonObjectConverter.h"
 #include "UPlotData/UPlotDataBase.h"
+#include "UPlotData/UPlotData_Dialog.h"
 
 /*static*/ const FName FJsonSerializationHelper::CLASS_META_JsonSerialization = "JsonSerialization";
 /*static*/ const FName FJsonSerializationHelper::CLASS_META_PreJsonSerialization = "PreJsonSerialization";
@@ -85,13 +86,15 @@ void FJsonSerializationHelper::Deserialize(UObject* InObject, const TSharedPtr<F
 	FJsonObjectConverter::JsonObjectToUStruct(JsonObject.ToSharedRef(), InObject->GetClass(), InObject);
 }
 
-void FJsonSerializationHelper::DeserializePlotMap(TMap<uint32, UPlotDataBase*>& OutMap, const TSharedPtr<FJsonObject>& JsonObject)
+void FJsonSerializationHelper::DeserializePlotMap(
+	TMap<uint32, UPlotDataBase*>& OutMap,
+	const TSharedPtr<FJsonObject>& JsonObject,
+	UObject* Outer)
 {
 	OutMap.Empty();
 
 	for (const auto& Pair : JsonObject->Values)
 	{
-		// key = FString → uint32
 		uint32 Key = FCString::Atoi(*Pair.Key);
 
 		if (!Pair.Value.IsValid() || !Pair.Value->AsObject().IsValid())
@@ -99,23 +102,43 @@ void FJsonSerializationHelper::DeserializePlotMap(TMap<uint32, UPlotDataBase*>& 
 
 		TSharedPtr<FJsonObject> ValueObj = Pair.Value->AsObject();
 
-		// 创建UObject
-		UPlotDataBase* NewObj = NewObject<UPlotDataBase>();
+		// 用临时对象读取 NodeType，虽然标注了UCLASS(Abstract)，但C++仍然允许创建对象
+		UPlotDataBase* TempBase = NewObject<UPlotDataBase>(Outer);
+		Deserialize(TempBase, ValueObj);
 
-		// 反序列化到对象
+		EPlotNodeType NodeType = TempBase->NodeType;
+
+		// 根据 NodeType 创建真正子类
+		UPlotDataBase* NewObj = nullptr;
+
+		switch (NodeType)
+		{
+		case EPlotNodeType::Dialog:
+			NewObj = NewObject<UPlotData_Dialog>(Outer);
+			break;
+
+		case EPlotNodeType::Choice:
+			//TODO: NewObj = NewObject<UPlotData_Choice>(Outer);
+			break;
+
+		default:
+			NewObj = NewObject<UPlotDataBase>(Outer);
+			break;
+		}
+
+		// 再次执行反序列化，读入所有字段
 		Deserialize(NewObj, ValueObj);
 
-		// 加回 Map
+		// 放入 Map
 		OutMap.Add(Key, NewObj);
 	}
 }
 
 
-
-bool FJsonSerializationHelper::DeserializePlotMapFromFile(TMap<uint32, UPlotDataBase*>& OutMap,  const FString& Filepath, UObject* Outer)
+bool FJsonSerializationHelper::DeserializePlotMapFromFile(TMap<uint32, UPlotDataBase*>& OutMap,  const FString& FilePath, UObject* Outer)
 {
 	FString JsonString;
-	if (!FFileHelper::LoadFileToString(JsonString, *Filepath))
+	if (!FFileHelper::LoadFileToString(JsonString, *FilePath))
 		return false;
 
 	TSharedPtr<FJsonObject> JsonObject;
@@ -124,6 +147,6 @@ bool FJsonSerializationHelper::DeserializePlotMapFromFile(TMap<uint32, UPlotData
 	if (!FJsonSerializer::Deserialize(Reader, JsonObject) || !JsonObject.IsValid())
 		return false;
 
-	DeserializePlotMap(OutMap, JsonObject);
+	DeserializePlotMap(OutMap, JsonObject, Outer);
 	return true;
 }
