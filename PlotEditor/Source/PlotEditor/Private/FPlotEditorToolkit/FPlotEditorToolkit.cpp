@@ -61,7 +61,7 @@ void FPlotEditorToolkit::InitPlotEditor(const EToolkitMode::Type Mode, const TSh
 				->Split
 				(
 					FTabManager::NewStack()
-					->AddTab(TabID_DetailPanel, ETabState::OpenedTab)
+					->AddTab(TabID_DetailPanel, ETabState::OpenedTab) // 添加细节面板
 				)
 			)
 		);
