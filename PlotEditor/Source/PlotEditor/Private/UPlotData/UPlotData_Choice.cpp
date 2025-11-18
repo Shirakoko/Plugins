@@ -31,7 +31,6 @@ void UPlotData_Choice::DoTransacted()
         }
     }
 
-
     // 调用父类触发序列化
     Super::DoTransacted();
 }

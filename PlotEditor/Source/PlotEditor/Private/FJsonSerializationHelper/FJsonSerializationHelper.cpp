@@ -58,7 +58,7 @@ TSharedPtr<FJsonObject> FJsonSerializationHelper::SerializePlotMap(const TMap<ui
 			continue;
 		}
 
-		// 递归序列化 UObject（调用已有的 Serialize）
+		// 递归序列化 UObject
 		TSharedPtr<FJsonObject> DataJson = Serialize(ValueObj);
 
 		MapJson->SetObjectField(FString::FromInt(Key), DataJson);

@@ -23,8 +23,3 @@ void SPlotNode_Choice::CreateBelowPinControls(TSharedPtr<SVerticalBox> MainBox)
 				.ColorAndOpacity(FLinearColor::White)
 		];
 }
-
-void SPlotNode_Choice::CreatePinWidgets()
-{
-	SGraphNode::CreatePinWidgets();
-}

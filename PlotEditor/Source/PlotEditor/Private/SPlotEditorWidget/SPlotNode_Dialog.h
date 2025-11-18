@@ -11,7 +11,5 @@ public:
 
 	// ~Begin SGraphNode implement
 	virtual void CreateBelowPinControls(TSharedPtr<SVerticalBox> MainBox) override;
-	virtual void CreatePinWidgets() override;
 	// ~End SGraphNode
 };
-#pragma once

@@ -113,7 +113,7 @@ UPlotNode_Dialog* FPlotEditorToolkit::Action_NewDialog(UEdGraph* ParentGraph, UE
 
 	if (ParentGraph == nullptr) ParentGraph = PlotGraphView->GetGraphObj();
 
-	// TODO: 准备数据
+	// 准备数据
 	UPlotData_Dialog* DialogData;
 	{
 		DialogData = NewObject<UPlotData_Dialog>(EditorContext);
@@ -159,7 +159,7 @@ UPlotNode_Dialog* FPlotEditorToolkit::Action_NewDialog(UEdGraph* ParentGraph, UE
 
 	EditorContext->Modify();
 	DialogData->Modify();
-	DialogData->IsDeleted = false; // Undo 时，删除对应的编辑器数据文件
+	DialogData->IsDeleted = false;
 	EditorContext->PlotDataMap.Add(DialogData->ID, DialogData);
 
 	ParentGraph->Modify();
@@ -185,9 +185,6 @@ UPlotNode_Choice* FPlotEditorToolkit::Action_NewChoice(UEdGraph* ParentGraph, UE
 		// 先新增俩选项
 		ChoiceData->Options.Add(TEXT("选项1"));
 		ChoiceData->Options.Add(TEXT("选项2"));
-
-		ChoiceData->NextPlotList.Add(0);
-		ChoiceData->NextPlotList.Add(0);
 
 		ChoiceData->SetFlags(RF_Transactional);
 	}
@@ -229,7 +226,7 @@ UPlotNode_Choice* FPlotEditorToolkit::Action_NewChoice(UEdGraph* ParentGraph, UE
 
 	EditorContext->Modify();
 	ChoiceData->Modify();
-	ChoiceData->IsDeleted = false; // Undo 时，删除对应的编辑器数据文件
+	ChoiceData->IsDeleted = false;
 	EditorContext->PlotDataMap.Add(ChoiceData->ID, ChoiceData);
 
 	ParentGraph->Modify();
@@ -248,10 +245,10 @@ void FPlotEditorToolkit::Action_DeletePlots(TArray<uint32> InPlotIDList)
 	{
 		UPlotDataBase* PlotData;
 
-		EditorContext->Modify(); // 标记Dirty，被Transaction系统记录
+		EditorContext->Modify();
 		EditorContext->PlotDataMap.RemoveAndCopyValue(PlotID, PlotData);
 
-		PlotData->Modify(); // 标记Dirty，被Transaction系统记录
+		PlotData->Modify();
 		PlotData->IsDeleted = true;
 
 		TWeakObjectPtr<UPlotNodeBase> PlotNodeToDelete = PlotData->PlotNode;
@@ -280,7 +277,7 @@ void FPlotEditorToolkit::LoadPlotsData()
 		return;
 	}
 
-	EditorContext->InitializeNextIDByPlotDataMap(); // 初始化ID
+	EditorContext->InitializeNextIDByPlotDataMap(); // 初始化最大NodeID
 }
 
 void FPlotEditorToolkit::ConnectDialogNode(UPlotData_Dialog* DialogData)
@@ -305,26 +302,31 @@ void FPlotEditorToolkit::ConnectDialogNode(UPlotData_Dialog* DialogData)
 	UEdGraphPin* SrcOut = SrcNode->GetNextPin();
 	if (!SrcOut) return;
 
-	// 目标节点为 Dialog 节点
-	if (auto DestDialog = Cast<UPlotNode_Dialog>(DestNode))
+	if ((*Found)->NodeType == EPlotNodeType::Dialog)
 	{
-		UEdGraphPin* DestIn = DestDialog->GetPrevPin();
-		if (DestIn)
+		// 目标节点为 Dialog 节点
+		if (auto DestDialog = Cast<UPlotNode_Dialog>(DestNode))
 		{
-			SrcOut->MakeLinkTo(DestIn);
+			UEdGraphPin* DestIn = DestDialog->GetPrevPin();
+			if (DestIn)
+			{
+				SrcOut->MakeLinkTo(DestIn);
+			}
+			return;
 		}
-		return;
 	}
-
-	// 目标节点为 Choice 节点
-	if (auto DestChoice = Cast<UPlotNode_Choice>(DestNode))
+	else if ((*Found)->NodeType == EPlotNodeType::Choice)
 	{
-		UEdGraphPin* DestIn = DestChoice->GetPrevPin();
-		if (DestIn)
+		// 目标节点为 Choice 节点
+		if (auto DestChoice = Cast<UPlotNode_Choice>(DestNode))
 		{
-			SrcOut->MakeLinkTo(DestIn);
+			UEdGraphPin* DestIn = DestChoice->GetPrevPin();
+			if (DestIn)
+			{
+				SrcOut->MakeLinkTo(DestIn);
+			}
+			return;
 		}
-		return;
 	}
 
 	UE_LOG(LogTemp, Warning, TEXT("Dialog %u cannot connect to unknown node type %u"), SrcID, DestID);
@@ -371,13 +373,21 @@ void FPlotEditorToolkit::ConnectChoiceNode(UPlotData_Choice* ChoiceData)
 		// 找目标节点的PrevPin
 		UEdGraphPin* TargetPrevPin = nullptr;
 
-		if (UPlotNode_Dialog* TargetDialog = Cast<UPlotNode_Dialog>(TargetNode))
+		if ((*TargetDataPtr)->NodeType == EPlotNodeType::Dialog)
 		{
-			TargetPrevPin = TargetDialog->GetPrevPin();
+			// 目标节点为 Dialog 节点
+			if (UPlotNode_Dialog* TargetDialog = Cast<UPlotNode_Dialog>(TargetNode))
+			{
+				TargetPrevPin = TargetDialog->GetPrevPin();
+			}
 		}
-		else if (UPlotNode_Choice* TargetChoice = Cast<UPlotNode_Choice>(TargetNode))
+		else if ((*TargetDataPtr)->NodeType == EPlotNodeType::Choice)
 		{
-			TargetPrevPin = TargetChoice->GetPrevPin();
+			// 目标节点为 Choice 节点
+			if (UPlotNode_Choice* TargetChoice = Cast<UPlotNode_Choice>(TargetNode))
+			{
+				TargetPrevPin = TargetChoice->GetPrevPin();
+			}
 		}
 
 		if (!TargetPrevPin)
@@ -416,9 +426,12 @@ void FPlotEditorToolkit::InitPlotGraph()
 		PlotNode->Bind(PlotData);
 
 		// 如果是Choice节点，要根据数据构建引脚
-		if (auto ChoiceNode = Cast<UPlotNode_Choice>(PlotNode))
+		if (PlotData->NodeType == EPlotNodeType::Choice)
 		{
-			ChoiceNode->CreateOutputPinsByOptions();
+			if (auto ChoiceNode = Cast<UPlotNode_Choice>(PlotNode))
+			{
+				ChoiceNode->CreateOutputPinsByOptions();
+			}
 		}
 	}
 
@@ -501,7 +514,7 @@ void FPlotEditorToolkit::CreateDetailsPanel(const TSharedRef<FTabManager>& InTab
 int32 FPlotEditorToolkit::GetNextNodeID()
 {
 	check(EditorContext);
-	return EditorContext->NextID++;
+	return EditorContext->GetNextNodeID();
 }
 
 #undef LOCTEXT_NAMESPACE

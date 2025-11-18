@@ -24,6 +24,5 @@ public:
 private:
     UEdGraphPin* PrevPin;
 
-    // 动态数量
     TArray<UEdGraphPin*> ChoicePins;
 };

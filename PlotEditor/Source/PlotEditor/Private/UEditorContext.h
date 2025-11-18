@@ -17,10 +17,12 @@ public:
 	UPROPERTY()
 	TMap<uint32, class UPlotDataBase*> PlotDataMap;
 
-	UPROPERTY(meta = (IgnoreJsonSerialization))
+	UPROPERTY()
 	int32 NextID = 1;
 
-    // 初始化ID
+    int32 GetNextNodeID() { return NextID++; }
+
+    // 初始化节点ID
     void InitializeNextIDByPlotDataMap()
     {
         int32 MaxID = 0;

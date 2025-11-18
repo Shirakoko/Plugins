@@ -24,7 +24,7 @@ void SPlotGraphView::Construct(const FArguments& InArgs, TSharedPtr<FPlotEditorT
 	GraphEvents.OnTextCommitted = FOnNodeTextCommitted::CreateRaw(this, &SPlotGraphView::OnNodeTextCommitted); // 文本提交回调
 
 	UICommandList = MakeShareable(new FUICommandList);
-	UICommandList->MapAction(FGenericCommands::Get().Delete, FExecuteAction::CreateRaw(this, &SPlotGraphView::DeleteSelectedNodes));
+	UICommandList->MapAction(FGenericCommands::Get().Delete, FExecuteAction::CreateRaw(this, &SPlotGraphView::DeleteSelectedNodes)); // 删除节点
 
 	// 创建 GraphEditor 的 Slate 控件
 	GraphEditorPtr = SNew(SGraphEditor)

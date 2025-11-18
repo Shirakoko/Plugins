@@ -25,9 +25,3 @@ void SPlotNode_Dialog::CreateBelowPinControls(TSharedPtr<SVerticalBox> MainBox)
 				.ColorAndOpacity(FLinearColor::White)
 		];
 }
-
-void SPlotNode_Dialog::CreatePinWidgets()
-{
-	SGraphNode::CreatePinWidgets();
-	// 重写创建Pin
-}

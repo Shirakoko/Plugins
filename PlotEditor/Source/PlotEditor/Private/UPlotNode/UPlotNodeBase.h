@@ -21,11 +21,6 @@ public:
 	void Bind(UPlotDataBase* InSource);
 	UPlotDataBase* GetSource() const { return Source.Get(); }
 
-	//UEdGraphPin* GetNextPin() const { return NextPin; }
-	//UEdGraphPin* GetPrevPin() const { return PrevPin; }
-
 protected:
 	TWeakObjectPtr<UPlotDataBase> Source;
-	//UEdGraphPin* NextPin;
-	//UEdGraphPin* PrevPin;
 };
