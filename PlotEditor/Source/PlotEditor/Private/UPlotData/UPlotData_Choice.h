@@ -19,9 +19,15 @@ public:
 		return UPlotNode_Choice::StaticClass();
 	}
 
-	/** 各选项对应的下一个节点 */
+	/** index → 下一个节点 ID（不显示在细节面板） */
 	UPROPERTY(NonTransactional)
-	TMap<uint32, uint32> NextPlotMap;
+	TArray<uint32> NextPlotList;
+
+	/** index -> 选项文本 */
+	UPROPERTY(EditAnywhere, Category = "Choice")
+	TArray<FString> Options;
 
 	virtual void DoTransacted() override;
+
+	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 };

@@ -11,5 +11,5 @@ void UEditorContext::PostTransacted(const FTransactionObjectEvent& TransactionEv
 	Super::PostTransacted(TransactionEvent);
 
 	// 自动修正NextID
-	InitializeNextID();
+	InitializeNextIDByPlotDataMap();
 }

@@ -21,7 +21,7 @@ public:
 	int32 NextID = 1;
 
     // 初始化ID
-    void InitializeNextID()
+    void InitializeNextIDByPlotDataMap()
     {
         int32 MaxID = 0;
         for (const auto& It : PlotDataMap)

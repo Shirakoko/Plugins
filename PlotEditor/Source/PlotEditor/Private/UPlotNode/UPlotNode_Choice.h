@@ -16,6 +16,8 @@ public:
     virtual TSharedPtr<SGraphNode> CreateVisualWidget() override;
     // ~End UEdGraphNode
 
+    void CreateOutputPinsByOptions();
+
     UEdGraphPin* GetPrevPin() const { return PrevPin; }
     const TArray<UEdGraphPin*>& GetChoicePins() const { return ChoicePins; }
 

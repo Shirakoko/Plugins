@@ -37,7 +37,6 @@ void FPlotEditorToolkit::InitPlotEditor(const EToolkitMode::Type Mode, const TSh
 	EditorContext = NewObject<UEditorContext>();
 	EditorContext->AddToRoot(); // 防止被GC
 	EditorContext->Toolkit = SharedThis(this); // 保存变量
-	EditorContext->InitializeNextID(); // 初始化ID
 	EditorContext->SetFlags(RF_Transactional);
 
 	// 创建编辑器的标签页布局
@@ -182,7 +181,13 @@ UPlotNode_Choice* FPlotEditorToolkit::Action_NewChoice(UEdGraph* ParentGraph, UE
 		ChoiceData = NewObject<UPlotData_Choice>(EditorContext.Get());
 		ChoiceData->Initialize(GetNextNodeID(), SharedThis(this));
 		ChoiceData->IsDeleted = true;
-		// TODO: 其他设置
+
+		// 先新增俩选项
+		ChoiceData->Options.Add(TEXT("选项1"));
+		ChoiceData->Options.Add(TEXT("选项2"));
+
+		ChoiceData->NextPlotList.Add(0);
+		ChoiceData->NextPlotList.Add(0);
 
 		ChoiceData->SetFlags(RF_Transactional);
 	}
@@ -199,6 +204,8 @@ UPlotNode_Choice* FPlotEditorToolkit::Action_NewChoice(UEdGraph* ParentGraph, UE
 
 	// 绑定数据
 	ChoiceNode->Bind(ChoiceData);
+	// 根据数据创建引脚
+	ChoiceNode->CreateOutputPinsByOptions();
 
 	int32 XLocation = Location.X;
 
@@ -272,6 +279,8 @@ void FPlotEditorToolkit::LoadPlotsData()
 		UE_LOG(LogTemp, Error, TEXT("Failed to load plot map JSON: %s"), *FilePath);
 		return;
 	}
+
+	EditorContext->InitializeNextIDByPlotDataMap(); // 初始化ID
 }
 
 void FPlotEditorToolkit::ConnectDialogNode(UPlotData_Dialog* DialogData)
@@ -329,10 +338,10 @@ void FPlotEditorToolkit::ConnectChoiceNode(UPlotData_Choice* ChoiceData)
 
 	const TArray<UEdGraphPin*>& OutPins = ChoiceNode->GetChoicePins();
 
-	for (const TPair<int32, uint32>& Pair : ChoiceData->NextPlotMap)
+	for (int32 OptionIndex = 0; OptionIndex < ChoiceData->NextPlotList.Num(); OptionIndex++)
 	{
-		int32 OptionIndex = Pair.Key;
-		uint32 TargetID = Pair.Value;
+		uint32 TargetID = ChoiceData->NextPlotList[OptionIndex];
+		if (TargetID == 0) continue; // 无效目标
 
 		// 寻找SrcPin
 		if (!OutPins.IsValidIndex(OptionIndex))
@@ -396,7 +405,7 @@ void FPlotEditorToolkit::InitPlotGraph()
 			PlotGraphView->GetGraphObj(),
 			nullptr,
 			PlotData->NodePos, // 根据Json数据设置位置
-			NodeClass->GetDefaultObject<UEdGraphNode>() // 用类默认对象生成节点
+			NodeClass->GetDefaultObject<UPlotNodeBase>() // 用类默认对象生成节点
 		);
 
 		// 初始化节点数据
@@ -405,6 +414,12 @@ void FPlotEditorToolkit::InitPlotGraph()
 		// 绑定数据
 		auto PlotNode = Cast<UPlotNodeBase>(Node);
 		PlotNode->Bind(PlotData);
+
+		// 如果是Choice节点，要根据数据构建引脚
+		if (auto ChoiceNode = Cast<UPlotNode_Choice>(PlotNode))
+		{
+			ChoiceNode->CreateOutputPinsByOptions();
+		}
 	}
 
 	// 创建连接（支持 Dialog 和 Choice）
