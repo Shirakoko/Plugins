@@ -1,5 +1,7 @@
 ﻿#include "SPlotNode_Choice.h"
+
 #include "UPlotNode/UPlotNode_Choice.h"
+#include "UPlotData/UPlotData_Choice.h"
 
 void SPlotNode_Choice::Construct(const FArguments& InArgs, UEdGraphNode* InNode)
 {
@@ -9,8 +11,10 @@ void SPlotNode_Choice::Construct(const FArguments& InArgs, UEdGraphNode* InNode)
 
 void SPlotNode_Choice::CreateBelowPinControls(TSharedPtr<SVerticalBox> MainBox)
 {
-	auto DialogNode = Cast<UPlotNode_Choice>(GraphNode);
-	auto DialogData = DialogNode->GetSource();
+	auto ChoiceNode = Cast<UPlotNode_Choice>(GraphNode);
+	auto ChoideData = Cast<UPlotData_Choice>(ChoiceNode->GetSource());
+
+	check(ChoideData);
 
 	MainBox->AddSlot()
 		.VAlign(VAlign_Center)

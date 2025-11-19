@@ -1,7 +1,7 @@
 ﻿#include "SPlotNode_Dialog.h"
+
 #include "UPlotNode/UPlotNode_Dialog.h"
-#include "Widgets/Text/STextBlock.h"
-#include "SPlotNode_Choice.h"
+#include "UPlotData/UPlotData_Dialog.h"
 
 void SPlotNode_Dialog::Construct(const FArguments& InArgs, UEdGraphNode* InNode)
 {
@@ -12,7 +12,9 @@ void SPlotNode_Dialog::Construct(const FArguments& InArgs, UEdGraphNode* InNode)
 void SPlotNode_Dialog::CreateBelowPinControls(TSharedPtr<SVerticalBox> MainBox)
 {
 	auto DialogNode = Cast<UPlotNode_Dialog>(GraphNode);
-	auto DialogData = DialogNode->GetSource();
+	auto DialogData = Cast<UPlotData_Dialog>(DialogNode->GetSource());
+
+	check(DialogData);
 
 	MainBox->AddSlot()
 		.VAlign(VAlign_Center)
