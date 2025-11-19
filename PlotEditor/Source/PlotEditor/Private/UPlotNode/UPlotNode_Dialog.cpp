@@ -38,3 +38,8 @@ TSharedPtr<SGraphNode> UPlotNode_Dialog::CreateVisualWidget()
 {
 	return SNew(SPlotNode_Dialog, this);
 }
+
+FText UPlotNode_Dialog::GetNodeTitle(ENodeTitleType::Type TitleType) const
+{
+	return NSLOCTEXT("PlotNode", "DialogNodeTitle", "对话节点");
+}

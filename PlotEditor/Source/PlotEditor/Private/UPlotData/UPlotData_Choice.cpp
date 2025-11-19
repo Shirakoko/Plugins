@@ -39,16 +39,25 @@ void UPlotData_Choice::PostEditChangeProperty(FPropertyChangedEvent& PropertyCha
 {
     Super::PostEditChangeProperty(PropertyChangedEvent);
 
-    if (!PlotNode.IsValid())
-        return;
+    if (!PlotNode.IsValid()) return;
 
-    // 判断是否修改了 Options
+    // 判断是否修改了 Options，以此更新引脚数量
     const FName PropertyName = PropertyChangedEvent.Property
         ? PropertyChangedEvent.Property->GetFName()
         : NAME_None;
 
     if (PropertyName == GET_MEMBER_NAME_CHECKED(UPlotData_Choice, Options))
     {
+        // 让新增的Options数组元素文本是"选项x"
+        if (PropertyChangedEvent.ChangeType == EPropertyChangeType::ArrayAdd)
+        {
+            int32 NewIndex = Options.Num() - 1;
+            if (Options.IsValidIndex(NewIndex))
+            {
+                Options[NewIndex] = FString::Printf(TEXT("选项%d"), NewIndex + 1);
+            }
+        }
+
         if (auto ChoiceNode = Cast<UPlotNode_Choice>(PlotNode))
         {
             // 引脚数量需要更新

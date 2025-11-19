@@ -15,6 +15,11 @@ void UPlotNode_Choice::PostTransacted(const FTransactionObjectEvent& Transaction
     }
 }
 
+FText UPlotNode_Choice::GetNodeTitle(ENodeTitleType::Type TitleType) const
+{
+    return NSLOCTEXT("PlotNode", "ChoiceNodeTitle", "选择节点");
+}
+
 void UPlotNode_Choice::AllocateDefaultPins()
 {
     // 创建输入引脚
@@ -66,7 +71,7 @@ void UPlotNode_Choice::CreateOutputPinsByOptions()
 
     for (int32 Index = 0; Index < DesiredCount; ++Index)
     {
-        DesiredPinNames.Add(FName(*FString::Printf(TEXT("选项_%d"), Index)));
+        DesiredPinNames.Add(FName(*FString::Printf(TEXT("选项_%d"), Index + 1)));
     }
 
     // 移除多余的 Pin（Data 少于当前 Pin）

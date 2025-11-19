@@ -78,7 +78,7 @@ void FJsonSerializationHelper::SerializePlotMapToFile(const TMap<uint32, UPlotDa
 	FJsonSerializer::Serialize(RootJson.ToSharedRef(), Writer);
 
 	// 保存文件
-	FFileHelper::SaveStringToFile(JsonString, *Filepath, FFileHelper::EEncodingOptions::ForceUTF8);
+FFileHelper::SaveStringToFile(JsonString, *Filepath, FFileHelper::EEncodingOptions::ForceUTF8);
 }
 
 void FJsonSerializationHelper::Deserialize(UObject* InObject, const TSharedPtr<FJsonObject>& JsonObject)

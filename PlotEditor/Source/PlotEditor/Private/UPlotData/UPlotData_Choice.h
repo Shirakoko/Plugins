@@ -29,5 +29,7 @@ public:
 
 	virtual void DoTransacted() override;
 
+	// ~Begin Interface UObject::PostEditChangeProperty
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
+	// ~End Interface
 };

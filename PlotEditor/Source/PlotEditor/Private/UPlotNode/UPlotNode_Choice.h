@@ -14,6 +14,7 @@ public:
     virtual void AllocateDefaultPins() override;
     virtual void AutowireNewNode(UEdGraphPin* FromPin) override;
     virtual TSharedPtr<SGraphNode> CreateVisualWidget() override;
+    virtual FText GetNodeTitle(ENodeTitleType::Type TitleType) const override;
     // ~End UEdGraphNode
 
     void CreateOutputPinsByOptions();

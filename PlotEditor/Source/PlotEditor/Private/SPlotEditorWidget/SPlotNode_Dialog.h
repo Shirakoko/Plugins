@@ -12,4 +12,6 @@ public:
 	// ~Begin SGraphNode implement
 	virtual void CreateBelowPinControls(TSharedPtr<SVerticalBox> MainBox) override;
 	// ~End SGraphNode
+
+	FReply OnAddDialogLineClicked();
 };

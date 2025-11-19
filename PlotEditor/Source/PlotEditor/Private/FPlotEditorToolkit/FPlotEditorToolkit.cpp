@@ -240,7 +240,8 @@ void FPlotEditorToolkit::Action_DeletePlots(TArray<uint32> InPlotIDList)
 {
 	if (InPlotIDList.IsEmpty()) return;
 
-	const FScopedTransaction Transaction(INVTEXT("Delete Plot"));
+	FScopedTransaction Transaction(INVTEXT("Delete Plot"));
+
 	for (uint32 PlotID : InPlotIDList)
 	{
 		UPlotDataBase* PlotData;

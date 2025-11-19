@@ -9,6 +9,11 @@ void UPlotDataBase::PostTransacted(const FTransactionObjectEvent& TransactionEve
 	DoTransacted();
 }
 
+void UPlotDataBase::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
+{
+	DoTransacted();
+}
+
 void UPlotDataBase::DoTransacted()
 {
 	// 保存节点位置

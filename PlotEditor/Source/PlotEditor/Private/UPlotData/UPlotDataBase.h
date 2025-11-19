@@ -30,7 +30,7 @@ public:
 		return UPlotNodeBase::StaticClass();
 	}
 
-	UPROPERTY(VisibleAnywhere, Category = "Plot")
+	UPROPERTY(VisibleAnywhere, Category = "Plot", meta = (DisplayPriority = 0))
 	uint32 ID;
 
 	UPROPERTY(NonTransactional)
@@ -46,6 +46,7 @@ public:
 
 	// ~Begin Interface UObject::PostTransacted
 	virtual void PostTransacted(const FTransactionObjectEvent& TransactionEvent) override;
+	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 	// ~End Interfacce
 
 	TWeakObjectPtr<class UPlotNodeBase> PlotNode;
