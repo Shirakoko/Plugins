@@ -50,8 +50,10 @@ void UPlotData_Choice::PostEditChangeProperty(FPropertyChangedEvent& PropertyCha
 
     if (PropertyName == GET_MEMBER_NAME_CHECKED(UPlotData_Choice, Options))
     {
+        const EPropertyChangeType::Type ChangeType = PropertyChangedEvent.ChangeType;
+
         // 让新增的Options数组元素文本是"选项x"
-        if (PropertyChangedEvent.ChangeType == EPropertyChangeType::ArrayAdd)
+        if (ChangeType == EPropertyChangeType::ArrayAdd || ChangeType == EPropertyChangeType::Duplicate)
         {
             int32 NewIndex = Options.Num() - 1;
             if (Options.IsValidIndex(NewIndex))
