@@ -2,9 +2,10 @@
 
 #include "UPlotNode/UPlotNode_Choice.h"
 #include "UPlotData/UPlotData_Choice.h"
-
-#include "SPlotEditorWidget/SPlotPin_Choice.h"
 #include "CommonMacros.h"
+#include "SPlotEditorWidget/SPlotPin_Choice.h"
+
+#define LOCTEXT_NAMESPACE "SPlotNode_Choice"
 
 void SPlotNode_Choice::Construct(const FArguments& InArgs, UEdGraphNode* InNode)
 {
@@ -128,11 +129,19 @@ TSharedPtr<SGraphPin> SPlotNode_Choice::CreatePinWidget_Choice(UEdGraphPin* Pin,
 
 FReply SPlotNode_Choice::OnAddOptionClicked()
 {
+	// 添加事务
+	const FScopedTransaction Transaction(LOCTEXT("AddDialog", "Add Dialog"));
+
 	auto ChoiceNode = Cast<UPlotNode_Choice>(GraphNode);
 	auto ChoiceData = Cast<UPlotData_Choice>(ChoiceNode->GetSource());
 	if (!ChoiceData) return FReply::Handled();
 
+	// 手动标记对象被事务系统记录
+	ChoiceData->Modify();
+
 	FString NewOptionName = FString::Printf(TEXT("选项%d"), ChoiceData->Options.Num() + 1);
+
+	// 修改对象
 	ChoiceData->Options.Add(NewOptionName);
 
 	// 根据选项个数重新创建引脚
@@ -142,4 +151,5 @@ FReply SPlotNode_Choice::OnAddOptionClicked()
 	ChoiceData->DoTransacted();
 	return FReply::Handled();
 }
+#undef LOCTEXT_NAMESPACE
 

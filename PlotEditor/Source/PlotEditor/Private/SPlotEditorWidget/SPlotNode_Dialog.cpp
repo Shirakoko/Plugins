@@ -5,6 +5,8 @@
 #include "CommonMacros.h"
 #include "Widgets/Text/SMultiLineEditableText.h"
 
+#define LOCTEXT_NAMESPACE "SPlotNode_Dialog"
+
 void SPlotNode_Dialog::Construct(const FArguments& InArgs, UEdGraphNode* InNode)
 {
 	GraphNode = InNode;
@@ -95,9 +97,15 @@ void SPlotNode_Dialog::CreateBelowPinControls(TSharedPtr<SVerticalBox> MainBox)
 
 FReply SPlotNode_Dialog::OnAddDialogLineClicked()
 {
+	// 添加事务
+	const FScopedTransaction Transaction(LOCTEXT("AddDialog", "Add Dialog"));
+
 	auto DialogNode = Cast<UPlotNode_Dialog>(GraphNode);
 	auto DialogData = Cast<UPlotData_Dialog>(DialogNode->GetSource());
 	if (!DialogData) return FReply::Handled();
+
+	// 手动标记，可被事务系统记录
+	DialogData->Modify();
 
 	FPlotDialogLine NewLine;
 	NewLine.Speaker = TEXT("说话人");
@@ -109,3 +117,4 @@ FReply SPlotNode_Dialog::OnAddDialogLineClicked()
 	DialogData->DoTransacted();
 	return FReply::Handled();
 }
+#undef LOCTEXT_NAMESPACE
