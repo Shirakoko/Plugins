@@ -419,6 +419,8 @@ void FPlotEditorToolkit::InitPlotGraph()
 			NodeClass->GetDefaultObject<UPlotNodeBase>() // 用类默认对象生成节点
 		);
 
+		Node->SetFlags(RF_Transactional);
+
 		// 初始化节点数据
 		PlotData->Initialize(NodeID, SharedThis(this));
 

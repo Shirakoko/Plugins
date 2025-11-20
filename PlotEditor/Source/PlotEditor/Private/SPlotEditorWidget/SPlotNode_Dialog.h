@@ -10,8 +10,12 @@ public:
 	void Construct(const FArguments& InArgs, UEdGraphNode* InNode);
 
 	// ~Begin SGraphNode implement
+	virtual TSharedRef<SWidget> CreateNodeContentArea() override;
 	virtual void CreateBelowPinControls(TSharedPtr<SVerticalBox> MainBox) override;
 	// ~End SGraphNode
 
+private:
 	FReply OnAddDialogLineClicked();
+
+	TSharedPtr<SWidget> CachedContentArea;
 };

@@ -127,6 +127,9 @@ void FJsonSerializationHelper::DeserializePlotMap(
 			break;
 		}
 
+		// 设置可撤销
+		NewObj->SetFlags(RF_Transactional);
+
 		// 再次执行反序列化，读入所有字段
 		Deserialize(NewObj, ValueObj);
 

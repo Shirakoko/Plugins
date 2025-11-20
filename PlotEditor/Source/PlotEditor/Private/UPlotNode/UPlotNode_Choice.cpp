@@ -71,10 +71,11 @@ void UPlotNode_Choice::CreateOutputPinsByOptions()
 
     for (int32 Index = 0; Index < DesiredCount; ++Index)
     {
-        DesiredPinNames.Add(FName(*FString::Printf(TEXT("选项_%d"), Index + 1)));
+        DesiredPinNames.Add(FName(*FString::Printf(TEXT("选项%d"), Index + 1)));
     }
 
-    // 移除多余的 Pin（Data 少于当前 Pin）
+    // 为了避免读取访问冲突，先收集需要删除的Pin，不立即删除
+    TArray<UEdGraphPin*> PinsToRemove;
     for (int32 i = ChoicePins.Num() - 1; i >= 0; --i)
     {
         UEdGraphPin* Pin = ChoicePins[i];
@@ -82,23 +83,29 @@ void UPlotNode_Choice::CreateOutputPinsByOptions()
 
         if (!DesiredPinNames.Contains(Pin->PinName))
         {
-            // 断开自己的连接
-            Pin->BreakAllPinLinks();
-
-            // 从 EdGraph 移除
-            Pins.Remove(Pin);
-
-            // 从 ChoicePins 移除
-            ChoicePins.RemoveAt(i);
+            PinsToRemove.Add(Pin);
         }
     }
 
-    // 补充缺失的 Pin（Options 个数多于当前 Pin 个数）
+    // 删除收集到的Pin
+    for (UEdGraphPin* PinToRemove : PinsToRemove)
+    {
+        // 断开连接
+        PinToRemove->BreakAllPinLinks();
+
+        // 从EdGraph移除
+        Pins.Remove(PinToRemove);
+
+        // 从ChoicePins移除
+        ChoicePins.Remove(PinToRemove);
+    }
+
+    // 补充缺失的Pin（Options个数多于当前Pin个数）
     for (int32 i = 0; i < DesiredCount; ++i)
     {
         FName DesiredName = DesiredPinNames[i];
 
-        // 查找是否已有这个 Pin
+        // 查找是否已有这个Pin
         UEdGraphPin* Existing = nullptr;
         for (UEdGraphPin* P : ChoicePins)
         {
@@ -111,7 +118,7 @@ void UPlotNode_Choice::CreateOutputPinsByOptions()
 
         if (Existing == nullptr)
         {
-            // 创建新 Pin
+            // 创建新Pin
             UEdGraphPin* NewPin = CreatePin(
                 EGPD_Output,
                 FPlotEditorPinFactory::PinCategory,

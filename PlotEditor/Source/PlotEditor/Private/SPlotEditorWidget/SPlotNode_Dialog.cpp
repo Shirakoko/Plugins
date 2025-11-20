@@ -11,6 +11,22 @@ void SPlotNode_Dialog::Construct(const FArguments& InArgs, UEdGraphNode* InNode)
 	UpdateGraphNode();
 }
 
+TSharedRef<SWidget> SPlotNode_Dialog::CreateNodeContentArea()
+{
+	CachedContentArea = SGraphNode::CreateNodeContentArea();
+
+	// 限制节点宽度
+	return SAssignNew(CachedContentArea, SBox)
+		.WidthOverride(WIDTH_NODE)
+		[
+			SNew(SVerticalBox)
+				+ SVerticalBox::Slot()
+				[
+					CachedContentArea.ToSharedRef()
+				]
+		];
+}
+
 void SPlotNode_Dialog::CreateBelowPinControls(TSharedPtr<SVerticalBox> MainBox)
 {
 	auto DialogNode = Cast<UPlotNode_Dialog>(GraphNode);
@@ -34,7 +50,6 @@ void SPlotNode_Dialog::CreateBelowPinControls(TSharedPtr<SVerticalBox> MainBox)
 					.AutoHeight()
 					[
 						SNew(SBox)
-						.WidthOverride(WIDTH_NODE)
 						[
 							SNew(SMultiLineEditableText)
 								.Text(FText::FromString(LineRef.Speaker))
@@ -52,7 +67,6 @@ void SPlotNode_Dialog::CreateBelowPinControls(TSharedPtr<SVerticalBox> MainBox)
 					.AutoHeight()
 					[
 						SNew(SBox)
-						.WidthOverride(WIDTH_NODE)
 						[
 							SNew(SMultiLineEditableText)
 								.Text(FText::FromString(LineRef.Content))

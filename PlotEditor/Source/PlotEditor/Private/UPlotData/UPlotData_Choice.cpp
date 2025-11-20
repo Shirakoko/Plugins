@@ -46,6 +46,8 @@ void UPlotData_Choice::PostEditChangeProperty(FPropertyChangedEvent& PropertyCha
         ? PropertyChangedEvent.Property->GetFName()
         : NAME_None;
 
+    Modify();
+
     if (PropertyName == GET_MEMBER_NAME_CHECKED(UPlotData_Choice, Options))
     {
         // 让新增的Options数组元素文本是"选项x"
@@ -57,17 +59,17 @@ void UPlotData_Choice::PostEditChangeProperty(FPropertyChangedEvent& PropertyCha
                 Options[NewIndex] = FString::Printf(TEXT("选项%d"), NewIndex + 1);
             }
         }
+    }
 
-        if (auto ChoiceNode = Cast<UPlotNode_Choice>(PlotNode))
+    if (auto ChoiceNode = Cast<UPlotNode_Choice>(PlotNode))
+    {
+        // 引脚数量需要更新
+        ChoiceNode->CreateOutputPinsByOptions();
+
+        // 通知图更新
+        if (UEdGraph* Graph = PlotNode->GetGraph())
         {
-            // 引脚数量需要更新
-            ChoiceNode->CreateOutputPinsByOptions();
-
-            // 通知图更新
-            if (UEdGraph* Graph = PlotNode->GetGraph())
-            {
-                Graph->NotifyGraphChanged();
-            }
+            Graph->NotifyGraphChanged();
         }
     }
 }
