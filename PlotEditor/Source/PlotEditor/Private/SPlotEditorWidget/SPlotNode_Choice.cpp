@@ -12,9 +12,9 @@ void SPlotNode_Choice::Construct(const FArguments& InArgs, UEdGraphNode* InNode)
 void SPlotNode_Choice::CreateBelowPinControls(TSharedPtr<SVerticalBox> MainBox)
 {
 	auto ChoiceNode = Cast<UPlotNode_Choice>(GraphNode);
-	auto ChoideData = Cast<UPlotData_Choice>(ChoiceNode->GetSource());
+	auto ChoiceData = Cast<UPlotData_Choice>(ChoiceNode->GetSource());
 
-	check(ChoideData);
+	check(ChoiceData);
 
 	MainBox->AddSlot()
 		.VAlign(VAlign_Center)
