@@ -25,7 +25,7 @@ static const FName TabID_DetailPanel = "DetailPanel";
 
 FString FPlotEditorToolkit::GetCurrentAssetJsonFilePath()
 {
-	FString DataPath = FPaths::ProjectDir() + TEXT("Designer/EditorData/TaskEditor");
+	FString DataPath = FPaths::ProjectDir() + TEXT("Designer/EditorData/PlotEditorData");
 	FString RelativePath = DataPath + TEXT("/") + CurrentAsset->GetName() + TEXT(".json");
 
 	// 返回绝对路径
