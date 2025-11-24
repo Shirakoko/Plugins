@@ -3,9 +3,11 @@
 #include "Framework/Commands/GenericCommands.h"
 #include "FPlotEditorToolkit/FPlotEditorToolkit.h"
 #include "UPlotEditorGraphSchema/UPlotEditorGraphSchema.h"
+#include "UPlotEditorGraph/UPlotEditorGraph.h"
 #include "UEditorContext.h"
 #include "UPlotNode/UPlotNodeBase.h"
 #include "UPlotData/UPlotDataBase.h"
+#include "UPlotEditorEntry/UPlotEditorEntry.h"
 
 void SPlotGraphView::Construct(const FArguments& InArgs, TSharedPtr<FPlotEditorToolkit> InToolkit)
 {
@@ -14,9 +16,13 @@ void SPlotGraphView::Construct(const FArguments& InArgs, TSharedPtr<FPlotEditorT
 	UEditorContext* Context = InToolkit->GetEditorContext();
 	check(Context);
 
-	GraphObj = NewObject<UEdGraph>(Context);
+	TObjectPtr<UPlotEditorEntry> CurrentAsset = Toolkit.Pin()->GetCurrentAsset();
+	check(CurrentAsset);
+
+	GraphObj = NewObject<UPlotEditorGraph>(CurrentAsset);
 	GraphObj->SetFlags(RF_Transactional); // 可被撤销
-	GraphObj->Schema = UPlotEditorGraphSchema::StaticClass();
+	GraphObj->Schema = UPlotEditorGraphSchema::StaticClass();  // 设置Schema
+	GraphObj->EditorContext = Context; // 赋值编辑器上下文
 
 	SGraphEditor::FGraphEditorEvents GraphEvents;
 	GraphEvents.OnSelectionChanged = SGraphEditor::FOnSelectionChanged::CreateRaw(this, &SPlotGraphView::OnSelectedNodesChanged); // 选择变化回调

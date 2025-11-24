@@ -35,6 +35,7 @@ public:
 	TSharedPtr<IDetailsView> GetDetailsView() { return DetailsView; }
 
 	UEditorContext* GetEditorContext() { return EditorContext; }
+	TObjectPtr<UPlotEditorEntry> GetCurrentAsset() { return CurrentAsset; }
 
 private:
 	/** 正在编辑的资产 */

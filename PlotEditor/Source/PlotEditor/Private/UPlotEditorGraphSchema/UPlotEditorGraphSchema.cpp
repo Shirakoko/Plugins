@@ -4,6 +4,7 @@
 #include "UPlotNode/UPlotNode_Choice.h"
 #include "UEditorContext.h"
 #include "FPlotEditorToolkit/FPlotEditorToolkit.h"
+#include "UPlotEditorGraph/UPlotEditorGraph.h"
 
 void UPlotEditorGraphSchema::GetGraphContextActions(FGraphContextMenuBuilder& ContextMenuBuilder) const
 {
@@ -30,13 +31,14 @@ UEdGraphNode* FPlotGraphAction_NewDialogNode::PerformAction(UEdGraph* ParentGrap
 		}
 	}
 
-	if (auto EditorContext = Cast<UEditorContext>(ParentGraph->GetOuter()))
+	// 从 ParentGraph 找到 EditorContext，然后找到 Toolkit，调用 Toolkit 里实际创建节点的方法
+	auto EditorContext = Cast<UPlotEditorGraph>(ParentGraph)->EditorContext;
+	check(EditorContext);
+	
+	auto Toolkit = EditorContext->Toolkit.Pin();
+	if (Toolkit.IsValid())
 	{
-		auto Toolkit = EditorContext->Toolkit.Pin();
-		if (Toolkit.IsValid())
-		{
-			NewNode = Toolkit->Action_NewDialog(ParentGraph, FromPin, Location, bSelectNewNode);
-		}
+		NewNode = Toolkit->Action_NewDialog(ParentGraph, FromPin, Location, bSelectNewNode);
 	}
 	return NewNode;
 }
@@ -56,16 +58,16 @@ UEdGraphNode* FPlotGraphAction_NewChoiceNode::PerformAction(UEdGraph* ParentGrap
 		}
 	}
 
-	if (auto EditorContext = Cast<UEditorContext>(ParentGraph->GetOuter()))
+	// 从 ParentGraph 找到 EditorContext，然后找到 Toolkit，调用 Toolkit 里实际创建节点的方法
+	auto EditorContext = Cast<UPlotEditorGraph>(ParentGraph)->EditorContext;
+	check(EditorContext);
+	
+	auto Toolkit = EditorContext->Toolkit.Pin();
+	if (Toolkit.IsValid())
 	{
-		auto Toolkit = EditorContext->Toolkit.Pin();
-		if (Toolkit.IsValid())
-		{
-			// 调用 Toolkit 里实际创建节点的方法
-			NewNode = Toolkit->Action_NewChoice(ParentGraph, FromPin, Location, bSelectNewNode);
-		}
+		// 调用 Toolkit 里实际创建节点的方法
+		NewNode = Toolkit->Action_NewChoice(ParentGraph, FromPin, Location, bSelectNewNode);
 	}
-
 	return NewNode;
 }
 

@@ -4,8 +4,12 @@
 #include "EdGraph/EdGraph.h"
 #include "UPlotEditorGraph.generated.h"
 
+class UEditorContext;
 UCLASS()
 class UPlotEditorGraph : public UEdGraph
 {
 	GENERATED_BODY()
+
+public:
+	TObjectPtr<UEditorContext> EditorContext;
 };

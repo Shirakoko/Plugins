@@ -1,6 +1,7 @@
 ﻿#pragma once
 
 class FPlotEditorToolkit;
+class UPlotEditorGraph;
 
 class SPlotGraphView : public SCompoundWidget
 {
@@ -13,7 +14,7 @@ public:
 	void Construct(const FArguments& InArgs, TSharedPtr<FPlotEditorToolkit> InToolkit);
 
 	TSharedPtr<SGraphEditor> GetGraphEditorPtr() { return GraphEditorPtr; }
-	TObjectPtr<UEdGraph> GetGraphObj() { return GraphObj; }
+	TObjectPtr<UPlotEditorGraph> GetGraphObj() { return GraphObj; }
 
 private:
 	/** 选择的节点切换时回调（由 SGraphEditor 的 OnSelectedNodesChanged 触发）*/
@@ -31,7 +32,7 @@ private:
 	TWeakPtr<FPlotEditorToolkit> Toolkit;
 
 	TSharedPtr<SGraphEditor> GraphEditorPtr;
-	TObjectPtr<UEdGraph> GraphObj;
+	TObjectPtr<UPlotEditorGraph> GraphObj;
 
 	TSharedPtr<FUICommandList> UICommandList;
 };
