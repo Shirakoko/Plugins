@@ -8,6 +8,7 @@
 #include "UPlotNode/UPlotNodeBase.h"
 #include "UPlotData/UPlotDataBase.h"
 #include "UPlotEditorEntry/UPlotEditorEntry.h"
+#include "EdGraphNode_Comment.h"
 
 void SPlotGraphView::Construct(const FArguments& InArgs, TSharedPtr<FPlotEditorToolkit> InToolkit)
 {
@@ -128,5 +129,21 @@ void SPlotGraphView::OnNodeTextCommitted(const FText& NewText, ETextCommit::Type
 {
 	if (!Node) return;
 
-	// TODO: 编辑器内提交文本时调用
+	// 注释框文本改变时调用，设置注释内容并通知图表更新
+	UEdGraphNode_Comment* CommentNode = Cast<UEdGraphNode_Comment>(Node);
+	if (CommentNode)
+	{
+		const FScopedTransaction Transaction(NSLOCTEXT("PlotEditor", "EditComment", "Edit Comment"));
+		CommentNode->Modify();
+		CommentNode->NodeComment = NewText.ToString();
+
+		if (UEdGraph* Graph = CommentNode->GetGraph())
+		{
+			Graph->NotifyGraphChanged();
+		}
+		if (GraphEditorPtr.IsValid())
+		{
+			GraphEditorPtr->NotifyGraphChanged();
+		}
+	}
 }
