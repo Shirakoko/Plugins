@@ -6,6 +6,7 @@
 class UPlotEditorEntry;
 class SPlotGraphView;
 class UEditorContext;
+class UPlotEditorGraph;
 
 class FPlotEditorToolkit : public FAssetEditorToolkit
 {
@@ -27,6 +28,8 @@ public:
 	class UPlotNode_Choice* Action_NewChoice(UEdGraph* ParentGraph = nullptr, UEdGraphPin* FromPin = nullptr, const FVector2D Location = { 0.0, 0.0 }, bool bSelectNewNode = true);
 	/** 删除Plot节点*/
 	void Action_DeletePlots(TArray<uint32> InPlotIDList);
+	/** 新增Comment节点 */
+	void Action_NewComment(UPlotEditorGraph* ParentGraph, const FVector2D Location, bool bSelectNewNode = true);
 
 	/** 序列化保存所有的Plot数据 */
 	void SerializeAllPlots();

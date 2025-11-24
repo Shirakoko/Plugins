@@ -260,6 +260,39 @@ void FPlotEditorToolkit::Action_DeletePlots(TArray<uint32> InPlotIDList)
 	}
 }
 
+void FPlotEditorToolkit::Action_NewComment(UPlotEditorGraph* ParentGraph, const FVector2D InLocation, bool bSelectNewNode)
+{
+	UEdGraphNode_Comment* CommentTemplate = NewObject<UEdGraphNode_Comment>(ParentGraph);
+	UEdGraphNode_Comment* NewCommentNode = nullptr;
+
+	auto TaskGraphEditor = PlotGraphView->GetGraphEditorPtr();
+	if (TaskGraphEditor.IsValid())
+	{
+		FSlateRect Bounds;
+		FVector2D Location;
+		FVector2D Size;
+
+		if (TaskGraphEditor->GetBoundsForSelectedNodes(Bounds, 50.f))
+		{
+			Location.X = Bounds.Left;
+			Location.Y = Bounds.Top;
+			Size = Bounds.GetSize();
+		}
+		else
+		{
+			Location.X = InLocation.X;
+			Location.Y = InLocation.Y;
+			Size.X = 400;
+			Size.Y = 100;
+		}
+
+		NewCommentNode = FEdGraphSchemaAction_NewNode::SpawnNodeFromTemplate<UEdGraphNode_Comment>(TaskGraphEditor->GetCurrentGraph(), CommentTemplate, Location, true);
+		NewCommentNode->NodeWidth = Size.X;
+		NewCommentNode->NodeHeight = Size.Y;
+		NewCommentNode->NodeComment = FString(TEXT("Comment"));
+	}
+}
+
 void FPlotEditorToolkit::SerializeAllPlots()
 {
 	if (!EditorContext.Get()) return;
@@ -404,6 +437,18 @@ void FPlotEditorToolkit::ConnectChoiceNode(UPlotData_Choice* ChoiceData)
 
 void FPlotEditorToolkit::InitPlotGraph()
 {
+	// 逆序遍历，删除除Comment节点外的所有节点，因为后面会根据Json数据重新生成
+	auto Graph = PlotGraphView->GetGraphObj();
+
+	for (int32 i = Graph->Nodes.Num() - 1; i >= 0; --i)
+	{
+		UEdGraphNode* Node = Graph->Nodes[i];
+		if (!Node->IsA<UEdGraphNode_Comment>())
+		{
+			Node->DestroyNode();
+		}
+	}
+
 	// 生成节点
 	for (const auto& KeyValue : EditorContext->PlotDataMap)
 	{

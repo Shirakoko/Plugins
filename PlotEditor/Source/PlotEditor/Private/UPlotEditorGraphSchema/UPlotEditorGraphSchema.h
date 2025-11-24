@@ -38,8 +38,10 @@ class UPlotEditorGraphSchema : public UEdGraphSchema
 public:
 	// ~Begin UEdGraphSchema interface
 
-	/** 右键空白处或者拖拽引脚的上下文菜单 */
+	/** 空白处右键或者拖拽引脚的上下文菜单 */
 	virtual void GetGraphContextActions(FGraphContextMenuBuilder& ContextMenuBuilder) const override;
+	/** 选中节点时右键上下文菜单 */
+	virtual void GetContextMenuActions(class UToolMenu* Menu, class UGraphNodeContextMenuContext* Context) const override;
 	/** 是否能创建引脚连接 */
 	virtual const FPinConnectionResponse CanCreateConnection(const UEdGraphPin* A, const UEdGraphPin* B) const override;
 	/** 引脚颜色 */
@@ -47,4 +49,7 @@ public:
 	/** 断开操作  */
 	virtual void BreakPinLinks(UEdGraphPin& TargetPin, bool bSendsNodeNotification) const override;
 	// ~End UEdGraphSchema
+
+private:
+	void AddComment(class UEdGraph* ParentGraph, const FVector2D& Location, bool bSelectNewNode) const;
 };

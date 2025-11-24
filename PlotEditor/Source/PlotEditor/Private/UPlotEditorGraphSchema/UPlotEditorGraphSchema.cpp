@@ -6,12 +6,43 @@
 #include "FPlotEditorToolkit/FPlotEditorToolkit.h"
 #include "UPlotEditorGraph/UPlotEditorGraph.h"
 
+#define LOCTEXT_NAMESPACE "PlotEditorGraphSchema"
+
 void UPlotEditorGraphSchema::GetGraphContextActions(FGraphContextMenuBuilder& ContextMenuBuilder) const
 {
 	ContextMenuBuilder.AddAction(MakeShared<FPlotGraphAction_NewDialogNode>());
 	ContextMenuBuilder.AddAction(MakeShared<FPlotGraphAction_NewChoiceNode>());
 
 	Super::GetGraphContextActions(ContextMenuBuilder);
+}
+
+void UPlotEditorGraphSchema::GetContextMenuActions(UToolMenu* Menu, UGraphNodeContextMenuContext* Context) const
+{
+	if (!Context || !Context->Node)
+	{
+		return;
+	}
+
+	// 节点右键菜单
+	if (Context->Node)
+	{
+		// 添加“创建注释框”菜单项
+		FToolMenuSection& CommentSection = Menu->AddSection("SchemaActionComment", LOCTEXT("MultiCommentHeader", "Comment Group"));
+		CommentSection.AddMenuEntry(
+			"MultiCommentDesc",
+			LOCTEXT("MultiCommentDesc", "为选中的节点创建注释"),
+			LOCTEXT("CommentToolTip", "Create a resizable comment box around selection."),
+			FSlateIcon(),
+			FUIAction(FExecuteAction::CreateLambda([this, Context]()
+				{
+					UE_LOG(LogTemp, Warning, TEXT("Comment menu item clicked"));
+					if (Context->Graph)
+					{
+						this->AddComment(const_cast<UEdGraph*>(ToRawPtr(Context->Graph)), FVector2D::ZeroVector, true);
+					}
+				}))
+		);
+	}
 }
 
 UEdGraphNode* FPlotGraphAction_NewDialogNode::PerformAction(UEdGraph* ParentGraph, UEdGraphPin* FromPin, const FVector2D Location, bool bSelectNewNode)
@@ -103,3 +134,19 @@ void UPlotEditorGraphSchema::BreakPinLinks(UEdGraphPin& TargetPin, bool bSendsNo
 	FScopedTransaction Transaction(NSLOCTEXT("UnrealEd", "GraphEd_BreakPinLinks", "Break Pin Links"));
 	Super::BreakPinLinks(TargetPin, bSendsNodeNotification);
 }
+
+void UPlotEditorGraphSchema::AddComment(UEdGraph* ParentGraph, const FVector2D& Location, bool bSelectNewNode) const
+{
+	auto PlotEditorGraph = Cast<UPlotEditorGraph>(ParentGraph);
+	check(PlotEditorGraph);
+
+	auto EditorContext = PlotEditorGraph->EditorContext;
+	check(EditorContext);
+
+	TWeakPtr<FPlotEditorToolkit> Toolkit = EditorContext->Toolkit;
+	if(Toolkit.IsValid())
+	{
+		Toolkit.Pin()->Action_NewComment(PlotEditorGraph, Location, bSelectNewNode);
+	}
+}
+#undef LOCKTEXT_NAMESPACE

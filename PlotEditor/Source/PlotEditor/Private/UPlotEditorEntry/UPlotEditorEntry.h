@@ -2,14 +2,15 @@
 
 #include "UPlotEditorEntry.generated.h"
 
+class UPlotEditorGraph;
+
 UCLASS()
 class UPlotEditorEntry : public UObject
 {
 	GENERATED_BODY()
-public:
-	UPlotEditorEntry(): Graph(nullptr){}
 
+public:
 	/** 剧情图引用（实际编辑的数据结构） */
 	UPROPERTY()	
-	TObjectPtr<UEdGraph> Graph;
+	TObjectPtr<UPlotEditorGraph> Graph;
 };

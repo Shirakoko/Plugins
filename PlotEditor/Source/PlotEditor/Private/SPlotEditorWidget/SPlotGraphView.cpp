@@ -19,7 +19,12 @@ void SPlotGraphView::Construct(const FArguments& InArgs, TSharedPtr<FPlotEditorT
 	TObjectPtr<UPlotEditorEntry> CurrentAsset = Toolkit.Pin()->GetCurrentAsset();
 	check(CurrentAsset);
 
-	GraphObj = NewObject<UPlotEditorGraph>(CurrentAsset);
+	if (!CurrentAsset->Graph)
+	{
+		CurrentAsset->Graph = NewObject<UPlotEditorGraph>(CurrentAsset, TEXT("PlotGraph"));
+	}
+
+	GraphObj = CurrentAsset->Graph;
 	GraphObj->SetFlags(RF_Transactional); // 可被撤销
 	GraphObj->Schema = UPlotEditorGraphSchema::StaticClass();  // 设置Schema
 	GraphObj->EditorContext = Context; // 赋值编辑器上下文
