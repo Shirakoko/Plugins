@@ -108,7 +108,12 @@ void SPlotGraphView::DeleteSelectedNodes()
 				PlotIDList.Add(Src->ID);
 			}
 		}
+		else if(auto CommentNode = Cast<UEdGraphNode_Comment>(NodeObj))
+		{
+			CommentNode->DestroyNode();
+		}
 	}
+
 	if (PlotIDList.Num() > 0)
 	{
 		Toolkit.Pin()->Action_DeletePlots(PlotIDList);
@@ -124,7 +129,6 @@ void SPlotGraphView::DeleteSelectedNodes()
 	}
 }
 
-// 当编辑器内提交文本时调用
 void SPlotGraphView::OnNodeTextCommitted(const FText& NewText, ETextCommit::Type CommitType, UEdGraphNode* Node)
 {
 	if (!Node) return;
