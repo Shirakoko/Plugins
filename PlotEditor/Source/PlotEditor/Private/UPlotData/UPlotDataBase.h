@@ -30,8 +30,11 @@ public:
 		return UPlotNodeBase::StaticClass();
 	}
 
-	UPROPERTY(VisibleAnywhere, Category = "Plot", meta = (DisplayPriority = 0))
+	UPROPERTY(VisibleDefaultsOnly, Category = "Plot", meta = (DisplayPriority = 0))
 	uint32 ID;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Plot", meta = (DisplayName = "节点备注", DisplayPriority = 1))
+	FString Comment;
 
 	UPROPERTY(NonTransactional)
 	FVector2D NodePos;

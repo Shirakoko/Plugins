@@ -38,7 +38,7 @@ public:
 	uint32 NextPlot = 0;
 
 	/** 对话内容数组 */
-	UPROPERTY(EditAnywhere, Category = "Plot", meta = (DisplayName = "对话内容"))
+	UPROPERTY(EditDefaultsOnly, Category = "Plot", meta = (DisplayName = "对话内容"))
 	TArray<FPlotDialogLine> DialogLines;
 
 	virtual void DoTransacted() override;

@@ -4,6 +4,7 @@
 
 #include "UPlotEditorEntryActions.h"
 #include "IAssetTools.h"
+#include "FCustomizationDetails.h"
 
 #define LOCTEXT_NAMESPACE "FPlotEditorModule"
 
@@ -23,6 +24,14 @@ void FPlotEditorModule::StartupModule()
 		// 保存引用，用于后续注销
 		CreatedAssetTypeActions.Add(Action);
 	}
+
+	// 注册细节面板定制
+	FPropertyEditorModule& PropertyModule = FModuleManager::LoadModuleChecked<FPropertyEditorModule>("PropertyEditor");
+	// 对 FPlotDialogLine 注册定制
+	PropertyModule.RegisterCustomPropertyTypeLayout(
+		FName("PlotDialogLine"),
+		FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FPlotDialogLineCustomization::MakeInstance)
+	);
 }
 
 void FPlotEditorModule::ShutdownModule()
@@ -38,7 +47,15 @@ void FPlotEditorModule::ShutdownModule()
 	}
 
 	CreatedAssetTypeActions.Empty();
+
+	// 注销细节面板定制
+	if (FModuleManager::Get().IsModuleLoaded("PropertyEditor"))
+	{
+		FPropertyEditorModule& PropertyModule = FModuleManager::LoadModuleChecked<FPropertyEditorModule>("PropertyEditor");
+		PropertyModule.UnregisterCustomPropertyTypeLayout(FName("PlotDialogLine"));
+	}
 }
+	
 
 #undef LOCTEXT_NAMESPACE
 	

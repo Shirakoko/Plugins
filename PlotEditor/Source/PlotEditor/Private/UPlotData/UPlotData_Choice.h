@@ -24,7 +24,7 @@ public:
 	TArray<uint32> NextPlotList;
 
 	/** index -> 选项文本 */
-	UPROPERTY(EditAnywhere, Category = "Plot", meta = (DisplayName = "选项内容"))
+	UPROPERTY(EditDefaultsOnly, Category = "Plot", meta = (DisplayName = "选项内容"))
 	TArray<FString> Options;
 
 	virtual void DoTransacted() override;
