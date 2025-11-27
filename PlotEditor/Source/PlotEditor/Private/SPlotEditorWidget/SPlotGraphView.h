@@ -11,7 +11,7 @@ public:
 	SLATE_END_ARGS()
 
 	/** Constructs this widget with InArgs */
-	void Construct(const FArguments& InArgs, TSharedPtr<FPlotEditorToolkit> InToolkit);
+	void Construct(const FArguments& InArgs, const TSharedPtr<FPlotEditorToolkit>& InToolkit);
 
 	TSharedPtr<SGraphEditor> GetGraphEditorPtr() { return GraphEditorPtr; }
 	TObjectPtr<UPlotEditorGraph> GetGraphObj() { return GraphObj; }
@@ -27,7 +27,7 @@ private:
 	void OnNodeDoubleClicked(UEdGraphNode* ClickedNode);
 
 	/** 删除选中节点 */
-	void DeleteSelectedNodes();
+	void DeleteSelectedNodes() const;
 
 	TWeakPtr<FPlotEditorToolkit> Toolkit;
 

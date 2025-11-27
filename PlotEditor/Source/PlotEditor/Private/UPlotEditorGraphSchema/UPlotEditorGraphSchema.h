@@ -51,5 +51,5 @@ public:
 	// ~End UEdGraphSchema
 
 private:
-	void AddComment(class UEdGraph* ParentGraph, const FVector2D& Location, bool bSelectNewNode) const;
+	static void AddComment(class UEdGraph* ParentGraph, const FVector2D& Location, bool bSelectNewNode);
 };

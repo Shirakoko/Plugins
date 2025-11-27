@@ -50,7 +50,7 @@ private:
 	/** 图编辑器的Slate控件 */
 	TSharedPtr<SPlotGraphView> PlotGraphView;
 
-	/** Detials面板的Slate控件 */
+	/** Details面板的Slate控件 */
 	TSharedPtr<IDetailsView> DetailsView;
 
 	/** 菜单分类项 */
@@ -64,7 +64,8 @@ private:
 
 	/** 创建Graph视图 */
 	void CreatePlotGraphView(const TSharedRef<FTabManager>& InTabManager);
-	/** 创建Detials面板 */
+	
+	/** 创建Details面板 */
 	void CreateDetailsPanel(const TSharedRef<FTabManager>& InTabManager);
 
 	/** 编辑器上下文 */

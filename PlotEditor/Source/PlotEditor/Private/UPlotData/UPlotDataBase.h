@@ -19,7 +19,7 @@ class UPlotDataBase : public UObject
 	GENERATED_BODY()
 public:
 
-	void Initialize(uint32 InID, TSharedPtr<FPlotEditorToolkit> InToolkit)
+	void Initialize(uint32 InID, const TSharedPtr<FPlotEditorToolkit>& InToolkit)
 	{
 		ID = InID;
 		Toolkit = InToolkit;
@@ -47,7 +47,7 @@ public:
 	// ~Begin Interface UObject::PostTransacted
 	virtual void PostTransacted(const FTransactionObjectEvent& TransactionEvent) override;
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
-	// ~End Interfacce
+	// ~End Interface
 
 	TWeakObjectPtr<class UPlotNodeBase> PlotNode;
 

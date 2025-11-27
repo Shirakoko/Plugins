@@ -135,7 +135,7 @@ void UPlotEditorGraphSchema::BreakPinLinks(UEdGraphPin& TargetPin, bool bSendsNo
 	Super::BreakPinLinks(TargetPin, bSendsNodeNotification);
 }
 
-void UPlotEditorGraphSchema::AddComment(UEdGraph* ParentGraph, const FVector2D& Location, bool bSelectNewNode) const
+void UPlotEditorGraphSchema::AddComment(UEdGraph* ParentGraph, const FVector2D& Location, bool bSelectNewNode)
 {
 	auto PlotEditorGraph = Cast<UPlotEditorGraph>(ParentGraph);
 	check(PlotEditorGraph);
@@ -149,4 +149,4 @@ void UPlotEditorGraphSchema::AddComment(UEdGraph* ParentGraph, const FVector2D& 
 		Toolkit.Pin()->Action_NewComment(PlotEditorGraph, Location, bSelectNewNode);
 	}
 }
-#undef LOCKTEXT_NAMESPACE
+#undef LOCTEXT_NAMESPACE

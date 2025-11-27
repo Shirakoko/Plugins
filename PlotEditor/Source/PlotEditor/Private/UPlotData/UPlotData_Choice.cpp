@@ -9,7 +9,6 @@ void UPlotData_Choice::DoTransacted()
     check(ChoiceNode);
 
     const TArray<UEdGraphPin*>& Pins = ChoiceNode->GetChoicePins();
-    const int32 PinCount = Pins.Num();
 
     NextPlotList.SetNum(Options.Num());
 

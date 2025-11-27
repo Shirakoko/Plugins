@@ -11,5 +11,6 @@ class UPlotEditorGraph : public UEdGraph
 	GENERATED_BODY()
 
 public:
+	UPROPERTY()
 	TObjectPtr<UEditorContext> EditorContext;
 };

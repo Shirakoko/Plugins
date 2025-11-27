@@ -83,9 +83,7 @@ void SPlotNode_Choice::CreatePinWidgets()
 
 void SPlotNode_Choice::CreateStandardPinWidget_Choice(UEdGraphPin* CurPin, int32 OutputIndex)
 {
-	const bool bShowPin = ShouldPinBeHidden(CurPin);
-
-	if (bShowPin)
+	if (ShouldPinBeHidden(CurPin))
 	{
 		TSharedPtr<SGraphPin> NewPin = CreatePinWidget_Choice(CurPin, OutputIndex);
 		check(NewPin.IsValid());

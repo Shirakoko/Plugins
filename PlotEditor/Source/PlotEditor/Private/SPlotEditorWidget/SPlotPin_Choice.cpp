@@ -1,7 +1,5 @@
 ﻿#include "SPlotPin_Choice.h"
 
-#include "UPlotNode/UPlotNode_Choice.h"
-#include "UPlotData/UPlotData_Choice.h"
 #include "Widgets/Text/SMultiLineEditableText.h"
 #include "CommonMacros.h"
 

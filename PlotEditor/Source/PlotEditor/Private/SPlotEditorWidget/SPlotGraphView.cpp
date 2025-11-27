@@ -10,7 +10,7 @@
 #include "UPlotEditorEntry/UPlotEditorEntry.h"
 #include "EdGraphNode_Comment.h"
 
-void SPlotGraphView::Construct(const FArguments& InArgs, TSharedPtr<FPlotEditorToolkit> InToolkit)
+void SPlotGraphView::Construct(const FArguments& InArgs, const TSharedPtr<FPlotEditorToolkit>& InToolkit)
 {
 	Toolkit = InToolkit;
 
@@ -89,7 +89,7 @@ void SPlotGraphView::OnNodeDoubleClicked(UEdGraphNode* ClickedNode)
 	// TODO: 双击节点回调
 }
 
-void SPlotGraphView::DeleteSelectedNodes()
+void SPlotGraphView::DeleteSelectedNodes() const
 {
 	if (!Toolkit.IsValid()) return;
 
@@ -134,8 +134,7 @@ void SPlotGraphView::OnNodeTextCommitted(const FText& NewText, ETextCommit::Type
 	if (!Node) return;
 
 	// 注释框文本改变时调用，设置注释内容并通知图表更新
-	UEdGraphNode_Comment* CommentNode = Cast<UEdGraphNode_Comment>(Node);
-	if (CommentNode)
+	if (UEdGraphNode_Comment* CommentNode = Cast<UEdGraphNode_Comment>(Node))
 	{
 		const FScopedTransaction Transaction(NSLOCTEXT("PlotEditor", "EditComment", "Edit Comment"));
 		CommentNode->Modify();
