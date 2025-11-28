@@ -28,7 +28,7 @@ public:
         int32 MaxID = 0;
         for (const auto& It : PlotDataMap)
         {
-            MaxID = FMath::Max(MaxID, (int32)It.Key);
+            MaxID = FMath::Max(MaxID, static_cast<int32>(It.Key));
         }
         NextID = MaxID + 1;
     }

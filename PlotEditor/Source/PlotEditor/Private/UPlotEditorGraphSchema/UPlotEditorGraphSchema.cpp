@@ -5,6 +5,7 @@
 #include "UEditorContext.h"
 #include "FPlotEditorToolkit/FPlotEditorToolkit.h"
 #include "UPlotEditorGraph/UPlotEditorGraph.h"
+#include "Framework/Commands/GenericCommands.h"
 
 #define LOCTEXT_NAMESPACE "PlotEditorGraphSchema"
 
@@ -26,8 +27,12 @@ void UPlotEditorGraphSchema::GetContextMenuActions(UToolMenu* Menu, UGraphNodeCo
 	// 节点右键菜单
 	if (Context->Node)
 	{
+		// 添加“删除”菜单项
+		FToolMenuSection& Section = Menu->AddSection(TEXT("SchemaAction"), INVTEXT("Node Section"));
+		Section.AddMenuEntry(FGenericCommands::Get().Delete);
+
 		// 添加“创建注释框”菜单项
-		FToolMenuSection& CommentSection = Menu->AddSection("SchemaActionComment", LOCTEXT("MultiCommentHeader", "Comment Group"));
+		FToolMenuSection& CommentSection = Menu->AddSection("SchemaAction", LOCTEXT("MultiCommentHeader", "Comment Group"));
 		CommentSection.AddMenuEntry(
 			"MultiCommentDesc",
 			LOCTEXT("MultiCommentDesc", "为选中的节点创建注释"),

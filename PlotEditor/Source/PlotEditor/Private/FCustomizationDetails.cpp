@@ -35,7 +35,7 @@ void FPlotDialogLineCustomization::CustomizeHeader(TSharedRef<IPropertyHandle> S
         ];
 }
 
-FText FPlotDialogLineCustomization::GetSpeakerText(TSharedPtr<IPropertyHandle> SpeakerHandle) const
+FText FPlotDialogLineCustomization::GetSpeakerText(const TSharedPtr<IPropertyHandle>& SpeakerHandle) const
 {
     if (!SpeakerHandle.IsValid() || !SpeakerHandle->IsValidHandle())
     {

@@ -1,6 +1,5 @@
 ﻿#include "UPlotNodeBase.h"
 
-#include "SPlotEditorWidget/SPlotNode_Dialog.h"
 #include "UPlotData/UPlotDataBase.h"
 
 void UPlotNodeBase::PostTransacted(const FTransactionObjectEvent& TransactionEvent)

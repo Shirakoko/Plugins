@@ -13,5 +13,5 @@ public:
 	// ~End IDetailCustomization interface
 
 private:
-	FText GetSpeakerText(TSharedPtr<IPropertyHandle> SpeakerHandle) const;
+	FText GetSpeakerText(const TSharedPtr<IPropertyHandle>& SpeakerHandle) const;
 };
