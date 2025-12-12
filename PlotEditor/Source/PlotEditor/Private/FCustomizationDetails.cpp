@@ -35,7 +35,7 @@ void FPlotDialogLineCustomization::CustomizeHeader(TSharedRef<IPropertyHandle> S
         ];
 }
 
-FText FPlotDialogLineCustomization::GetSpeakerText(const TSharedPtr<IPropertyHandle>& SpeakerHandle) const
+FText FPlotDialogLineCustomization::GetSpeakerText(TSharedPtr<IPropertyHandle> SpeakerHandle) const
 {
     if (!SpeakerHandle.IsValid() || !SpeakerHandle->IsValidHandle())
     {
@@ -51,7 +51,6 @@ FText FPlotDialogLineCustomization::GetSpeakerText(const TSharedPtr<IPropertyHan
     return FText::GetEmpty();
 }
 
-
 void FPlotDialogLineCustomization::CustomizeChildren(TSharedRef<IPropertyHandle> StructPropertyHandle, IDetailChildrenBuilder& ChildBuilder, IPropertyTypeCustomizationUtils& CustomizationUtils)
 {
     uint32 PropertyNum = 0;
@@ -63,5 +62,51 @@ void FPlotDialogLineCustomization::CustomizeChildren(TSharedRef<IPropertyHandle>
         check(ChildHandle);
 
         ChildBuilder.AddProperty(ChildHandle.ToSharedRef());
+    }
+}
+
+TSharedRef<IDetailCustomization> FPlotDataDetailCustomization::MakeInstance()
+{
+    return MakeShareable(new FPlotDataDetailCustomization);
+}
+
+void FPlotDataDetailCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
+{
+    // 获取正在编辑的对象数组
+    TArray<TWeakObjectPtr<UObject>> Objects;
+    DetailBuilder.GetObjectsBeingCustomized(Objects);
+
+    // 新增 Category
+    IDetailCategoryBuilder& Category = DetailBuilder.EditCategory("Plot Info");
+
+    for (TWeakObjectPtr<UObject> Obj : Objects)
+    {
+        UPlotDataBase* PlotData = Cast<UPlotDataBase>(Obj.Get());
+        if (!PlotData) continue;
+
+        const UEnum* EnumPtr = StaticEnum<EPlotNodeType>();
+        FText TypeText = FText::Format(
+            INVTEXT("节点类型: {0}"),
+            EnumPtr->GetDisplayNameTextByValue((int64)PlotData->NodeType)
+        );
+
+        FText DisplayName = FText::Format(
+            INVTEXT("【{0}】{1}"),
+            FText::AsNumber(PlotData->ID),
+            FText::FromString(PlotData->Comment)
+        );
+
+        // 添加一行
+        Category.AddCustomRow(FText::FromString(TEXT("Plot Info")))
+        .NameContent()
+        [
+            SNew(STextBlock)
+                .Text(DisplayName)
+        ]
+        .ValueContent()
+        [
+            SNew(STextBlock)
+                .Text(TypeText)
+        ];
     }
 }

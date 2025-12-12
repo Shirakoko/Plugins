@@ -27,10 +27,16 @@ void FPlotEditorModule::StartupModule()
 
 	// 注册细节面板定制
 	FPropertyEditorModule& PropertyModule = FModuleManager::LoadModuleChecked<FPropertyEditorModule>("PropertyEditor");
-	// 对 FPlotDialogLine 注册定制
+
+	// 对 FPlotDialogLine 注册属性细节面板定制
 	PropertyModule.RegisterCustomPropertyTypeLayout(
 		FName("PlotDialogLine"),
 		FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FPlotDialogLineCustomization::MakeInstance)
+	);
+	// 对 UPlotDataBase 注册类细节面板定制
+	PropertyModule.RegisterCustomClassLayout(
+		FName("PlotDataBase"),
+		FOnGetDetailCustomizationInstance::CreateStatic(&FPlotDataDetailCustomization::MakeInstance)
 	);
 }
 
@@ -53,6 +59,7 @@ void FPlotEditorModule::ShutdownModule()
 	{
 		FPropertyEditorModule& PropertyModule = FModuleManager::LoadModuleChecked<FPropertyEditorModule>("PropertyEditor");
 		PropertyModule.UnregisterCustomPropertyTypeLayout(FName("PlotDialogLine"));
+		PropertyModule.UnregisterCustomClassLayout(FName("PlotDataBase"));
 	}
 }
 	
